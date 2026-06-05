@@ -1,35 +1,27 @@
-import { getJson, removeKey, setJson, STORAGE_KEYS } from '@/src/services/storage';
+import { supabase } from '@/src/services/supabase';
 import { UserProfile, UserSettings } from '@/src/types/wellness';
 
-function hashPassword(password: string): string {
-  return `hash:${password.split('').reverse().join('')}:${password.length}`;
-}
-
-export async function getUsers(): Promise<UserProfile[]> {
-  return getJson<UserProfile[]>(STORAGE_KEYS.users, []);
-}
-
-export async function saveUsers(users: UserProfile[]): Promise<void> {
-  await setJson(STORAGE_KEYS.users, users);
-}
-
-export async function getSessionUserId(): Promise<string | null> {
-  return getJson<string | null>(STORAGE_KEYS.session, null);
-}
-
-export async function setSessionUserId(userId: string | null): Promise<void> {
-  if (!userId) {
-    await removeKey(STORAGE_KEYS.session);
-    return;
-  }
-  await setJson(STORAGE_KEYS.session, userId);
-}
-
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const userId = await getSessionUserId();
-  if (!userId) return null;
-  const users = await getUsers();
-  return users.find((user) => user.id === userId) ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (error || !profile) return null;
+
+  return {
+    id: profile.id,
+    email: session.user.email ?? '',
+    displayName: profile.display_name ?? '',
+    passwordHash: '', // Not used with cloud auth
+    privacyConsentAt: profile.privacy_consent_at,
+    onboardingComplete: profile.onboarding_complete,
+    createdAt: profile.created_at,
+  };
 }
 
 export async function signUp(input: {
@@ -37,69 +29,156 @@ export async function signUp(input: {
   password: string;
   displayName: string;
 }): Promise<UserProfile> {
-  const users = await getUsers();
-  const normalizedEmail = input.email.trim().toLowerCase();
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: {
+      data: {
+        display_name: input.displayName,
+      },
+    },
+  });
 
-  if (users.some((user) => user.email === normalizedEmail)) {
-    throw new Error('An account with this email already exists.');
+  if (error) {
+    throw new Error(error.message);
   }
 
-  const user: UserProfile = {
-    id: `user-${Date.now()}`,
-    email: normalizedEmail,
-    displayName: input.displayName.trim(),
-    passwordHash: hashPassword(input.password),
-    privacyConsentAt: null,
-    onboardingComplete: false,
-    createdAt: new Date().toISOString(),
-  };
+  const user = data.user;
+  if (!user) {
+    throw new Error('Registration failed. Please try again.');
+  }
 
-  users.push(user);
-  await saveUsers(users);
-  await setSessionUserId(user.id);
-  return user;
+  // The database trigger 'on_auth_user_created' will create the profile and settings.
+  // We fetch the newly created profile, retrying if the trigger has a slight delay.
+  let profile = null;
+  for (let i = 0; i < 5; i++) {
+    const { data: p } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    if (p) {
+      profile = p;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 150));
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? '',
+    displayName: profile?.display_name ?? input.displayName,
+    passwordHash: '',
+    privacyConsentAt: profile?.privacy_consent_at ?? null,
+    onboardingComplete: profile?.onboarding_complete ?? false,
+    createdAt: profile?.created_at ?? new Date().toISOString(),
+  };
 }
 
 export async function signIn(email: string, password: string): Promise<UserProfile> {
-  const users = await getUsers();
-  const normalizedEmail = email.trim().toLowerCase();
-  const user = users.find((entry) => entry.email === normalizedEmail);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  if (!user || user.passwordHash !== hashPassword(password)) {
-    throw new Error('Invalid email or password.');
+  if (error) {
+    throw new Error(error.message);
   }
 
-  await setSessionUserId(user.id);
-  return user;
+  const user = data.user;
+  if (!user) {
+    throw new Error('Sign in failed.');
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error('User profile not found.');
+  }
+
+  return {
+    id: profile.id,
+    email: user.email ?? '',
+    displayName: profile.display_name ?? '',
+    passwordHash: '',
+    privacyConsentAt: profile.privacy_consent_at,
+    onboardingComplete: profile.onboarding_complete,
+    createdAt: profile.created_at,
+  };
 }
 
 export async function signOut(): Promise<void> {
-  await setSessionUserId(null);
+  const { error } = await supabase.auth.signOut();
+  if (error) throw new Error(error.message);
 }
 
 export async function updateUser(userId: string, patch: Partial<UserProfile>): Promise<UserProfile> {
-  const users = await getUsers();
-  const index = users.findIndex((user) => user.id === userId);
-  if (index < 0) throw new Error('User not found.');
+  const dbPatch: Record<string, any> = {};
+  if (patch.displayName !== undefined) dbPatch.display_name = patch.displayName;
+  if (patch.onboardingComplete !== undefined) dbPatch.onboarding_complete = patch.onboardingComplete;
+  if (patch.privacyConsentAt !== undefined) dbPatch.privacy_consent_at = patch.privacyConsentAt;
 
-  users[index] = { ...users[index], ...patch };
-  await saveUsers(users);
-  return users[index];
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .update(dbPatch)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error || !profile) {
+    throw new Error(error?.message ?? 'Failed to update user profile.');
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  return {
+    id: profile.id,
+    email: session?.user?.email ?? '',
+    displayName: profile.display_name ?? '',
+    passwordHash: '',
+    privacyConsentAt: profile.privacy_consent_at,
+    onboardingComplete: profile.onboarding_complete,
+    createdAt: profile.created_at,
+  };
 }
 
 export async function getSettings(userId: string): Promise<UserSettings> {
-  const all = await getJson<Record<string, UserSettings>>(STORAGE_KEYS.settings, {});
-  return (
-    all[userId] ?? {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) {
+    return {
       notificationsEnabled: true,
       dataSharingEnabled: false,
       theme: 'dark',
-    }
-  );
+    };
+  }
+
+  return {
+    notificationsEnabled: data.notifications_enabled,
+    dataSharingEnabled: data.data_sharing_enabled,
+    theme: data.theme as 'dark',
+  };
 }
 
 export async function saveSettings(userId: string, settings: UserSettings): Promise<void> {
-  const all = await getJson<Record<string, UserSettings>>(STORAGE_KEYS.settings, {});
-  all[userId] = settings;
-  await setJson(STORAGE_KEYS.settings, all);
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert({
+      user_id: userId,
+      notifications_enabled: settings.notificationsEnabled,
+      data_sharing_enabled: settings.dataSharingEnabled,
+      theme: settings.theme,
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
