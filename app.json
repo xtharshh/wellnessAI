@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "MCPSTICH",
-    "slug": "MCPSTICH",
+    "name": "MindTrace AI",
+    "slug": "mindtrace-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mcpstich",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
@@ -31,7 +31,7 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#111318"
         }
       ]
     ],
