@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getMetricSeries, getSnapshots } from '@/src/services/wellness';
 import { useAuthStore } from '@/src/stores/authStore';
 
-export type TrendRange = 7 | 30 | 90;
+export type TrendRange = 7 | 15 | 30 | 90;
 
 export function useTrends(range: TrendRange) {
   const user = useAuthStore((state) => state.user);

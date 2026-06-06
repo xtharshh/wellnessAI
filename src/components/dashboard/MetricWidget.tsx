@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
-import { Sparkline } from '@/src/components/charts/Sparkline';
 import { GlassCard } from '@/src/components/ui/GlassCard';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/hooks/useTheme';
 import { typography } from '@/src/theme/typography';
+import { radius, spacing } from '@/src/theme/spacing';
 
 interface MetricWidgetProps {
   title: string;
@@ -16,72 +17,112 @@ interface MetricWidgetProps {
   onPress?: () => void;
 }
 
-const accentColors = {
-  primary: colors.primaryAccent,
-  secondary: colors.secondaryAccent,
-  tertiary: colors.tertiaryAccent,
-};
-
 export function MetricWidget({
   title,
   value,
   unit,
   trend,
-  series = [],
   accent = 'primary',
   icon,
   onPress,
 }: MetricWidgetProps) {
+  const { colors, isDark } = useTheme();
+
+  const circleBgs = {
+    primary: isDark ? 'rgba(162, 203, 253, 0.18)' : 'rgba(162, 203, 253, 0.35)',
+    secondary: isDark ? 'rgba(247, 190, 233, 0.18)' : 'rgba(247, 190, 233, 0.35)',
+    tertiary: isDark ? 'rgba(255, 220, 98, 0.18)' : 'rgba(255, 220, 98, 0.35)',
+  };
+
+  const iconColors = {
+    primary: isDark ? '#a2cbfd' : '#3b82f6',
+    secondary: isDark ? '#f7bee9' : '#ec4899',
+    tertiary: isDark ? '#ffdc62' : '#eab308',
+  };
+
   const trendLabel =
-    trend === undefined ? null : `${trend > 0 ? '+' : ''}${trend}% vs last week`;
+    trend === undefined ? null : `${trend > 0 ? '↑' : '↓'} ${Math.abs(trend)}% vs last week`;
   const trendColor =
-    trend === undefined ? colors.onSurfaceVariant : trend >= 0 ? colors.tertiary : colors.error;
+    trend === undefined ? colors.onSurfaceVariant : trend >= 0 ? colors.riskLow : colors.error;
 
   const card = (
-    <GlassCard accent={accent}>
+    <GlassCard accent={accent} style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          {icon ? `${icon} ` : ''}
-          {title}
-        </Text>
-        {trendLabel ? <Text style={[styles.trend, { color: trendColor }]}>{trendLabel}</Text> : null}
+        <View style={[styles.iconCircle, { backgroundColor: circleBgs[accent] }]}>
+          <Feather name={(icon || 'activity') as any} size={20} color={iconColors[accent]} />
+        </View>
+        <View style={styles.titleCol}>
+          <Text numberOfLines={1} style={[styles.title, { color: colors.onSurfaceVariant }]}>
+            {title}
+          </Text>
+          {trendLabel ? (
+            <Text style={[styles.trend, { color: trendColor }]}>{trendLabel}</Text>
+          ) : (
+            <Text style={[styles.trend, { color: colors.onSurfaceVariant }]}>Steady state</Text>
+          )}
+        </View>
       </View>
       <View style={styles.valueRow}>
-        <Text style={styles.value}>{value}</Text>
-        {unit ? <Text style={styles.unit}>{unit}</Text> : null}
+        <Text style={[styles.value, { color: colors.onSurface }]}>
+          {value}
+          {unit ? <Text style={[styles.unit, { color: colors.onSurfaceVariant }]}> {unit}</Text> : null}
+        </Text>
       </View>
-      {series.length ? <Sparkline data={series} color={accentColors[accent]} /> : null}
     </GlassCard>
   );
 
   if (!onPress) return card;
-  return <Pressable onPress={onPress}>{card}</Pressable>;
+  return <Pressable onPress={onPress} style={styles.pressable}>{card}</Pressable>;
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    flex: 1,
+  },
+  card: {
+    borderRadius: radius.lg,
+  },
   header: {
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconText: {
+    fontSize: 20,
+  },
+  titleCol: {
+    flex: 1,
+    gap: 2,
   },
   title: {
     ...typography.labelCaps,
-    color: colors.onSurfaceVariant,
+    letterSpacing: 0.2,
+    fontSize: 13,
   },
   trend: {
-    ...typography.dataMono,
-    fontSize: 12,
+    fontFamily: typography.dataMono.fontFamily,
+    fontSize: 11,
   },
   valueRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
+    alignItems: 'baseline',
+    marginTop: 8,
   },
   value: {
     ...typography.headlineLgMobile,
-    color: colors.onSurface,
+    fontSize: 26,
+    fontWeight: '700',
   },
   unit: {
     ...typography.bodyMd,
-    color: colors.onSurfaceVariant,
-    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: '400',
   },
 });

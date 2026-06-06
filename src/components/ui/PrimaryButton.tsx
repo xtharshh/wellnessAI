@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/hooks/useTheme';
 import { radius, spacing } from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
 
@@ -12,13 +12,15 @@ interface PrimaryButtonProps {
 }
 
 export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButtonProps) {
+  const { colors } = useTheme();
+
   return (
     <Pressable
-      style={[styles.button, (disabled || loading) && styles.disabled]}
+      style={[styles.button, { backgroundColor: colors.primaryAccent }, (disabled || loading) && styles.disabled]}
       onPress={onPress}
       disabled={disabled || loading}>
       {loading ? (
-        <ActivityIndicator color={colors.onSurface} />
+        <ActivityIndicator color="#ffffff" />
       ) : (
         <Text style={styles.label}>{label}</Text>
       )}
@@ -28,7 +30,6 @@ export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButt
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.primaryAccent,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

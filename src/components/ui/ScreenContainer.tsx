@@ -2,7 +2,8 @@ import { ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors } from '@/src/theme/colors';
+import { trackInteraction } from '@/src/services/realAnalytics';
+import { useTheme } from '@/src/hooks/useTheme';
 import { spacing } from '@/src/theme/spacing';
 
 interface ScreenContainerProps {
@@ -20,22 +21,24 @@ export function ScreenContainer({
   refreshing,
   onRefresh,
 }: ScreenContainerProps) {
+  const { colors } = useTheme();
+
   if (!scrollable) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} onTouchStart={trackInteraction}>
         <View style={[styles.content, contentStyle]}>{children}</View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} onTouchStart={trackInteraction}>
       <ScrollView
         contentContainerStyle={[styles.content, contentStyle]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           onRefresh ? (
-            <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor="#a855f7" />
+            <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primaryAccent} />
           ) : undefined
         }>
         {children}
@@ -47,11 +50,10 @@ export function ScreenContainer({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: spacing.marginMobile,
-    paddingBottom: spacing.lg,
+    paddingBottom: 110,
     gap: spacing.md,
   },
 });

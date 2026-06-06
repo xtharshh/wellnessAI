@@ -26,7 +26,7 @@ export function useRecommendations() {
   const regenerate = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
-      return generateRecommendations(user.id);
+      return generateRecommendations(user.id, true);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recommendations', user?.id] }),
   });

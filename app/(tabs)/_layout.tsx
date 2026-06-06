@@ -1,34 +1,46 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Feather } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
 
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/hooks/useTheme';
 import { typography } from '@/src/theme/typography';
 
 function TabIcon({
   name,
   color,
 }: {
-  name: ComponentProps<typeof FontAwesome>['name'];
-  color: ComponentProps<typeof FontAwesome>['color'];
+  name: ComponentProps<typeof Feather>['name'];
+  color: ComponentProps<typeof Feather>['color'];
 }) {
-  return <FontAwesome size={22} name={name} color={color} />;
+  return <Feather size={20} name={name} color={color} />;
 }
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.outline,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
+          position: 'absolute',
+          bottom: 16,
+          left: 16,
+          right: 16,
+          backgroundColor: '#0f172a', // Deep slate-black premium background
+          borderRadius: 28,
+          height: 68,
+          paddingBottom: 10,
+          paddingTop: 10,
+          borderTopWidth: 0,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.3,
+          shadowRadius: 16,
+          elevation: 8,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.onSurfaceVariant,
+        tabBarActiveTintColor: '#a2cbfd', // Soft Blue active highlight
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.4)',
         tabBarLabelStyle: {
           fontFamily: typography.labelCaps.fontFamily,
           fontSize: 10,
@@ -39,21 +51,35 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color }) => <TabIcon name="heartbeat" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="activity" color={color} />,
         }}
       />
       <Tabs.Screen
         name="trends"
         options={{
           title: 'Trends',
-          tabBarIcon: ({ color }) => <TabIcon name="line-chart" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="trending-up" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="breath"
+        options={{
+          title: 'Breathe',
+          tabBarIcon: ({ color }) => <TabIcon name="wind" color={color} />,
         }}
       />
       <Tabs.Screen
         name="recommendations"
         options={{
           title: 'AI Recs',
-          tabBarIcon: ({ color }) => <TabIcon name="magic" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="zap" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="exercises"
+        options={{
+          title: 'Exercises',
+          tabBarIcon: ({ color }) => <TabIcon name="list" color={color} />,
         }}
       />
       <Tabs.Screen

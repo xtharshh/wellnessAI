@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: 'rgba(168, 85, 247, 0.18)',
+    backgroundColor: 'rgba(162, 203, 253, 0.22)',
     top: '34%',
   },
   logoCircle: {

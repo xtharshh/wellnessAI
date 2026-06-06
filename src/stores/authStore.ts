@@ -7,6 +7,7 @@ import { UserProfile } from '@/src/types/wellness';
 
 interface AuthState {
   user: UserProfile | null;
+  theme: 'dark' | 'light';
   hydrated: boolean;
   loading: boolean;
   error: string | null;
@@ -17,6 +18,7 @@ interface AuthState {
   acceptPrivacy: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
+  setTheme: (theme: 'dark' | 'light') => Promise<void>;
   clearError: () => void;
 }
 
@@ -27,16 +29,24 @@ async function bootstrapUserData(userId: string) {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  theme: 'light',
   hydrated: false,
   loading: false,
   error: null,
 
   hydrate: async () => {
     const user = await authService.getCurrentUser();
+    let theme: 'dark' | 'light' = 'light';
     if (user) {
       await bootstrapUserData(user.id);
+      try {
+        const settings = await authService.getSettings(user.id);
+        theme = (settings.theme === 'light' ? 'light' : 'dark') as 'dark' | 'light';
+      } catch (e) {
+        console.error('Failed to load user theme setting:', e);
+      }
     }
-    set({ user, hydrated: true });
+    set({ user, theme, hydrated: true });
   },
 
   signIn: async (email, password) => {
@@ -44,7 +54,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const user = await authService.signIn(email, password);
       await bootstrapUserData(user.id);
-      set({ user, loading: false });
+      const settings = await authService.getSettings(user.id);
+      const theme = (settings.theme === 'light' ? 'light' : 'dark') as 'dark' | 'light';
+      set({ user, theme, loading: false });
     } catch (error) {
       set({
         loading: false,
@@ -59,7 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const user = await authService.signUp({ email, password, displayName });
       await bootstrapUserData(user.id);
-      set({ user, loading: false });
+      set({ user, theme: 'light', loading: false });
     } catch (error) {
       set({
         loading: false,
@@ -71,7 +83,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await authService.signOut();
-    set({ user: null });
+    set({ user: null, theme: 'light' });
   },
 
   acceptPrivacy: async () => {
@@ -95,6 +107,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!user) return;
     const updated = await authService.updateUser(user.id, { displayName });
     set({ user: updated });
+  },
+
+  setTheme: async (theme) => {
+    const { user } = get();
+    if (user) {
+      try {
+        const settings = await authService.getSettings(user.id);
+        await authService.saveSettings(user.id, {
+          ...settings,
+          theme,
+        });
+      } catch (e) {
+        console.error('Failed to save user theme settings:', e);
+      }
+    }
+    set({ theme });
   },
 
   clearError: () => set({ error: null }),

@@ -50,5 +50,16 @@ export interface UserProfile {
 export interface UserSettings {
   notificationsEnabled: boolean;
   dataSharingEnabled: boolean;
-  theme: 'dark';
+  theme: 'dark' | 'light';
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  duration: string;
+  steps: string[];
+  explanation: string;
+  category: string;
+  custom: boolean;
+  createdAt: string;
 }

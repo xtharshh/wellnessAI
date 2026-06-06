@@ -157,7 +157,7 @@ export async function getSettings(userId: string): Promise<UserSettings> {
     return {
       notificationsEnabled: true,
       dataSharingEnabled: false,
-      theme: 'dark',
+      theme: 'light',
     };
   }
 

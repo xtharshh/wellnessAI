@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+  compileSdkVersion 34
+  defaultConfig {
+    minSdkVersion 21
+    targetSdkVersion 34
+  }
+  namespace "wellbeing"
+}
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+  implementation project(':expo-modules-core')
+}

@@ -35,31 +35,29 @@ export async function ensureSnapshots(userId: string): Promise<WellnessSnapshot[
     return existing.map(mapDbSnapshotToModel);
   }
 
-  // Seed data
-  const mockSnapshots = generateWellnessSnapshots(30);
-  const dbRows = mockSnapshots.map((s) => ({
+  // Seed a single initial 0 baseline snapshot for new signups instead of 15 days of fake mock history
+  const initialRow = {
     user_id: userId,
-    recorded_at: s.recordedAt,
-    mood_score: s.moodScore,
-    sleep_hours: s.sleepHours,
-    activity_level: s.activityLevel,
-    stress_index: s.stressIndex,
-    risk_level: s.riskLevel,
-    metadata: {},
-  }));
+    recorded_at: new Date().toISOString(),
+    mood_score: 0,
+    sleep_hours: 0,
+    activity_level: 0,
+    stress_index: 0,
+    risk_level: 'low',
+    metadata: { source: 'initial_signup_baseline' },
+  };
 
   const { data: inserted, error: insertError } = await supabase
     .from('wellness_snapshots')
-    .insert(dbRows)
+    .insert([initialRow])
     .select();
 
   if (insertError) {
-    console.error('Failed to seed snapshots:', insertError);
+    console.error('Failed to seed initial baseline snapshot:', insertError);
   }
 
   return (inserted || [])
-    .map(mapDbSnapshotToModel)
-    .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+    .map(mapDbSnapshotToModel);
 }
 
 export async function getSnapshots(userId: string, rangeDays = 30): Promise<WellnessSnapshot[]> {
@@ -90,12 +88,14 @@ export async function getWellnessSummary(userId: string): Promise<WellnessSummar
   const latest = snapshots[snapshots.length - 1];
   const previous = snapshots[Math.max(0, snapshots.length - 8)];
 
-  const wellnessScore = Math.round(
-    latest.moodScore * 0.35 +
-      Math.min(latest.sleepHours / 8, 1) * 100 * 0.25 +
-      latest.activityLevel * 0.2 +
-      (100 - latest.stressIndex) * 0.2,
-  );
+  const wellnessScore = (latest.moodScore === 0 && latest.sleepHours === 0 && latest.activityLevel === 0)
+    ? 0
+    : Math.round(
+        latest.moodScore * 0.35 +
+          Math.min(latest.sleepHours / 8, 1) * 100 * 0.25 +
+          latest.activityLevel * 0.2 +
+          (100 - latest.stressIndex) * 0.2,
+      );
 
   return {
     wellnessScore,
@@ -118,11 +118,17 @@ export async function refreshLatestSnapshot(userId: string): Promise<WellnessSna
 
   const latest = snapshots[snapshots.length - 1];
 
+  // If starting from 0 (signup baseline), initialize to realistic baselines first
+  const baseMood = latest.moodScore === 0 ? 70 : latest.moodScore;
+  const baseSleep = latest.sleepHours === 0 ? 7.5 : latest.sleepHours;
+  const baseActivity = latest.activityLevel === 0 ? 50 : latest.activityLevel;
+  const baseStress = latest.stressIndex === 0 ? 30 : latest.stressIndex;
+
   const refreshed = {
-    mood_score: Math.min(100, latest.moodScore + Math.round((Math.random() - 0.5) * 6)),
-    sleep_hours: Number(Math.max(4, Math.min(9, latest.sleepHours + (Math.random() - 0.5) * 0.4)).toFixed(1)),
-    activity_level: Math.min(100, Math.max(10, latest.activityLevel + Math.round((Math.random() - 0.5) * 8))),
-    stress_index: Math.min(100, Math.max(5, latest.stressIndex + Math.round((Math.random() - 0.5) * 6))),
+    mood_score: Math.min(100, Math.max(0, baseMood + Math.round((Math.random() - 0.5) * 6))),
+    sleep_hours: Number(Math.max(0, Math.min(12, baseSleep + (Math.random() - 0.5) * 0.4)).toFixed(1)),
+    activity_level: Math.min(100, Math.max(0, baseActivity + Math.round((Math.random() - 0.5) * 8))),
+    stress_index: Math.min(100, Math.max(0, baseStress + Math.round((Math.random() - 0.5) * 6))),
     recorded_at: new Date().toISOString(),
     risk_level: '',
   };
