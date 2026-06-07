@@ -34,11 +34,12 @@ const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
     borderRadius: radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   label: {
     ...typography.labelCaps,
-    fontSize: 11,
+    fontSize: 10,
+    letterSpacing: 0.4,
   },
 });

@@ -41,10 +41,22 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName: string;
+  avatarUrl: string | null;
   passwordHash: string;
   privacyConsentAt: string | null;
   onboardingComplete: boolean;
   createdAt: string;
+  dob?: string;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  bodyFat?: number;
+  bloodType?: string;
+  restingHr?: number;
+  activityLevel?: string;
+  dailyStepsGoal?: number;
+  sleepDurationGoal?: number;
+  waterIntakeGoal?: number;
 }
 
 export interface UserSettings {

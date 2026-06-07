@@ -1,6 +1,52 @@
 import { supabase } from '@/src/services/supabase';
 import { UserProfile, UserSettings } from '@/src/types/wellness';
 
+export function parseDisplayName(rawDisplayName: string | null): Partial<UserProfile> & { displayName: string } {
+  if (!rawDisplayName) {
+    return { displayName: '' };
+  }
+  if (rawDisplayName.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(rawDisplayName);
+      return {
+        displayName: parsed.displayName ?? '',
+        dob: parsed.dob,
+        gender: parsed.gender,
+        height: parsed.height,
+        weight: parsed.weight,
+        bodyFat: parsed.bodyFat,
+        bloodType: parsed.bloodType,
+        restingHr: parsed.restingHr,
+        activityLevel: parsed.activityLevel,
+        dailyStepsGoal: parsed.dailyStepsGoal,
+        sleepDurationGoal: parsed.sleepDurationGoal,
+        waterIntakeGoal: parsed.waterIntakeGoal,
+      };
+    } catch (e) {
+      // Fallback
+    }
+  }
+  return { displayName: rawDisplayName };
+}
+
+export function serializeProfile(profile: Partial<UserProfile>): string {
+  const payload = {
+    displayName: profile.displayName ?? '',
+    dob: profile.dob,
+    gender: profile.gender,
+    height: profile.height,
+    weight: profile.weight,
+    bodyFat: profile.bodyFat,
+    bloodType: profile.bloodType,
+    restingHr: profile.restingHr,
+    activityLevel: profile.activityLevel,
+    dailyStepsGoal: profile.dailyStepsGoal,
+    sleepDurationGoal: profile.sleepDurationGoal,
+    waterIntakeGoal: profile.waterIntakeGoal,
+  };
+  return JSON.stringify(payload);
+}
+
 export async function getCurrentUser(): Promise<UserProfile | null> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return null;
@@ -13,14 +59,18 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
 
   if (error || !profile) return null;
 
+  const parsedFields = parseDisplayName(profile.display_name);
+
   return {
     id: profile.id,
     email: session.user.email ?? '',
-    displayName: profile.display_name ?? '',
+    displayName: parsedFields.displayName,
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '', // Not used with cloud auth
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,
     createdAt: profile.created_at,
+    ...parsedFields,
   };
 }
 
@@ -64,14 +114,18 @@ export async function signUp(input: {
     await new Promise((r) => setTimeout(r, 150));
   }
 
+  const parsedFields = parseDisplayName(profile?.display_name ?? input.displayName);
+
   return {
     id: user.id,
     email: user.email ?? '',
-    displayName: profile?.display_name ?? input.displayName,
+    displayName: parsedFields.displayName,
+    avatarUrl: profile?.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile?.privacy_consent_at ?? null,
     onboardingComplete: profile?.onboarding_complete ?? false,
     createdAt: profile?.created_at ?? new Date().toISOString(),
+    ...parsedFields,
   };
 }
 
@@ -100,14 +154,18 @@ export async function signIn(email: string, password: string): Promise<UserProfi
     throw new Error('User profile not found.');
   }
 
+  const parsedFields = parseDisplayName(profile.display_name);
+
   return {
     id: profile.id,
     email: user.email ?? '',
-    displayName: profile.display_name ?? '',
+    displayName: parsedFields.displayName,
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,
     createdAt: profile.created_at,
+    ...parsedFields,
   };
 }
 
@@ -116,9 +174,31 @@ export async function signOut(): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function resetPassword(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw new Error(error.message);
+}
+
 export async function updateUser(userId: string, patch: Partial<UserProfile>): Promise<UserProfile> {
+  // Fetch current profile first to merge
+  const { data: current } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', userId)
+    .single();
+
+  const currentParsed = parseDisplayName(current?.display_name ?? '');
+
+  // Merge patch
+  const merged = {
+    ...currentParsed,
+    ...patch,
+  };
+
   const dbPatch: Record<string, any> = {};
-  if (patch.displayName !== undefined) dbPatch.display_name = patch.displayName;
+  dbPatch.display_name = serializeProfile(merged);
+
+  if (patch.avatarUrl !== undefined) dbPatch.avatar_url = patch.avatarUrl;
   if (patch.onboardingComplete !== undefined) dbPatch.onboarding_complete = patch.onboardingComplete;
   if (patch.privacyConsentAt !== undefined) dbPatch.privacy_consent_at = patch.privacyConsentAt;
 
@@ -134,15 +214,18 @@ export async function updateUser(userId: string, patch: Partial<UserProfile>): P
   }
 
   const { data: { session } } = await supabase.auth.getSession();
+  const parsedFields = parseDisplayName(profile.display_name);
 
   return {
     id: profile.id,
     email: session?.user?.email ?? '',
-    displayName: profile.display_name ?? '',
+    displayName: parsedFields.displayName,
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,
     createdAt: profile.created_at,
+    ...parsedFields,
   };
 }
 

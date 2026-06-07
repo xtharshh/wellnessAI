@@ -15,6 +15,7 @@ import { AppProviders } from '@/src/providers/AppProviders';
 import { useRealtimeSync } from '@/src/hooks/useRealtimeSync';
 import { useTheme } from '@/src/hooks/useTheme';
 import { useAuthStore } from '@/src/stores/authStore';
+import { NotificationService } from '@/src/services/notificationService';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -23,6 +24,10 @@ SplashScreen.preventAutoHideAsync();
 function AppWithTheme() {
   const { colors, theme } = useTheme();
   useRealtimeSync();
+
+  useEffect(() => {
+    NotificationService.init();
+  }, []);
 
   const activeNavigationTheme = {
     ...(theme === 'light' ? DefaultTheme : DarkTheme),
@@ -47,6 +52,7 @@ function AppWithTheme() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="ai-insights" />
         <Stack.Screen name="perfect-plan" />
+        <Stack.Screen name="telemetry" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: true, title: 'Metric Detail' }} />
       </Stack>
     </ThemeProvider>

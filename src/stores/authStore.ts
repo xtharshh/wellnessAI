@@ -4,6 +4,7 @@ import * as authService from '@/src/services/auth';
 import * as recommendationsService from '@/src/services/recommendations';
 import { ensureSnapshots } from '@/src/services/wellness';
 import { UserProfile } from '@/src/types/wellness';
+import { supabase } from '@/src/services/supabase';
 
 interface AuthState {
   user: UserProfile | null;
@@ -18,6 +19,9 @@ interface AuthState {
   acceptPrivacy: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
+  updateAvatar: (avatarUrl: string | null) => Promise<void>;
+  updateEmail: (email: string) => Promise<void>;
+  updateHealthProfile: (profileData: Partial<UserProfile>) => Promise<void>;
   setTheme: (theme: 'dark' | 'light') => Promise<void>;
   clearError: () => void;
 }
@@ -25,6 +29,25 @@ interface AuthState {
 async function bootstrapUserData(userId: string) {
   await ensureSnapshots(userId);
   await recommendationsService.generateRecommendations(userId);
+}
+
+// supabase-js can hang indefinitely on getSession()/getUser() in React Native
+// (lock/storage edge cases on cold start) — bound hydration so the splash
+// screen always resolves instead of blocking forever.
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Auth hydration timed out')), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -35,18 +58,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
 
   hydrate: async () => {
-    const user = await authService.getCurrentUser();
+    let user = null;
     let theme: 'dark' | 'light' = 'light';
-    if (user) {
-      await bootstrapUserData(user.id);
-      try {
-        const settings = await authService.getSettings(user.id);
-        theme = (settings.theme === 'light' ? 'light' : 'dark') as 'dark' | 'light';
-      } catch (e) {
-        console.error('Failed to load user theme setting:', e);
+    try {
+      user = await authService.getCurrentUser();
+      if (user) {
+        try {
+          await bootstrapUserData(user.id);
+        } catch (bootstrapErr) {
+          console.error('Failed to bootstrap user data during hydration:', bootstrapErr);
+        }
+        try {
+          const settings = await authService.getSettings(user.id);
+          theme = (settings.theme === 'light' ? 'light' : 'dark') as 'dark' | 'light';
+        } catch (themeErr) {
+          console.error('Failed to load user theme setting during hydration:', themeErr);
+        }
       }
+    } catch (e) {
+      console.error('Failed to hydrate auth session:', e);
+    } finally {
+      set({ user, theme, hydrated: true });
     }
-    set({ user, theme, hydrated: true });
   },
 
   signIn: async (email, password) => {
@@ -106,6 +139,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user) return;
     const updated = await authService.updateUser(user.id, { displayName });
+    set({ user: updated });
+  },
+
+  updateAvatar: async (avatarUrl) => {
+    const { user } = get();
+    if (!user) return;
+    const updated = await authService.updateUser(user.id, { avatarUrl });
+    set({ user: updated });
+  },
+
+  updateEmail: async (email) => {
+    const { user } = get();
+    if (!user) return;
+    const { error } = await supabase.auth.updateUser({ email });
+    if (error) throw error;
+    // We update the local state email, but note that Supabase might require confirmation
+    set({ user: { ...user, email } });
+  },
+
+  updateHealthProfile: async (profileData) => {
+    const { user } = get();
+    if (!user) return;
+    const updated = await authService.updateUser(user.id, profileData);
     set({ user: updated });
   },
 

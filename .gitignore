@@ -2,13 +2,33 @@
 
 # dependencies
 node_modules/
-
+.env    
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+#.env.example
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+<<<<<<< HEAD
+.apk
+android/app/build/*
+modules/**/android/build/
+modules/**/android/.cxx/
+.vscode/
+.cache/
+android/app/.externalNativeBuild/
+android/app/.cxx/
+android/*
+=======
+.env 
+*.env
+.env.example
 
+>>>>>>> b152a8cb259e896a594b89b4d14cc344d8a6fa0e
 # Native
 .kotlin/
 *.orig.*
@@ -39,3 +59,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# APK files
+*.apk
+.*apk

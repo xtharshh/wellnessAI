@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 import { useTheme } from '@/src/hooks/useTheme';
 import { radius, spacing } from '@/src/theme/spacing';
-import { typography } from '@/src/theme/typography';
+import { fonts } from '@/src/theme/typography';
 
 interface PrimaryButtonProps {
   label: string;
@@ -16,7 +16,7 @@ export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButt
 
   return (
     <Pressable
-      style={[styles.button, { backgroundColor: colors.primaryAccent }, (disabled || loading) && styles.disabled]}
+      style={[styles.button, { backgroundColor: colors.primary }, (disabled || loading) && styles.disabled]}
       onPress={onPress}
       disabled={disabled || loading}>
       {loading ? (
@@ -31,18 +31,18 @@ export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButt
 const styles = StyleSheet.create({
   button: {
     borderRadius: radius.md,
-    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    height: 52,
   },
   disabled: {
     opacity: 0.6,
   },
   label: {
-    ...typography.bodyMd,
+    fontSize: 16,
+    fontFamily: fonts.bold,
+    fontWeight: '700',
     color: '#fff',
-    fontFamily: typography.titleMd.fontFamily,
   },
 });

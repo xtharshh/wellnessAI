@@ -1,47 +1,36 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View, Pressable, Alert, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, Pressable, Alert, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 import { GlassCard } from '@/src/components/ui/GlassCard';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { StatusChip } from '@/src/components/ui/StatusChip';
-import { useRecommendations } from '@/src/hooks/useRecommendations';
 import { useExercises } from '@/src/hooks/useExercises';
 import { setupPerfectPlanExercises } from '@/src/services/exercises';
 import { useAuthStore } from '@/src/stores/authStore';
 import { useTheme } from '@/src/hooks/useTheme';
-import { typography } from '@/src/theme/typography';
 import { radius, spacing } from '@/src/theme/spacing';
 
 export default function PerfectPlanScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const { colors, isDark } = useTheme();
-  
-  const { data: recs, isLoading: isRecsLoading } = useRecommendations();
-  const { data: exercises, isLoading: isExercisesLoading, refetch: refetchExercises } = useExercises();
+
+  const { data: exercises, refetch: refetchExercises } = useExercises();
   
   const [activating, setActivating] = useState(false);
-  const [checkedSteps, setCheckedSteps] = useState<Record<string, Record<number, boolean>>>({});
 
-  // Determine if the perfect plan is already configured in the user's library
+  // Check if perfect plan is already active
   const isPlanActive = (exercises || []).some(
     (e) => e.name.toLowerCase().trim() === 'mindful posture check'
   );
 
-  const toggleStep = (recId: string, stepIndex: number) => {
-    setCheckedSteps((prev) => {
-      const recSteps = prev[recId] || {};
-      return {
-        ...prev,
-        [recId]: {
-          ...recSteps,
-          [stepIndex]: !recSteps[stepIndex],
-        },
-      };
-    });
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/dashboard');
+    }
   };
 
   const handleActivate = async () => {
@@ -51,8 +40,8 @@ export default function PerfectPlanScreen() {
       await setupPerfectPlanExercises(user.id);
       await refetchExercises();
       Alert.alert(
-        'Perfect Plan Configured!',
-        'Your custom exercise guides have been auto-configured and added to your Exercises library.',
+        'Perfect Plan Activated!',
+        'Your custom routine guides have been added to your Exercises library.',
         [
           {
             text: 'Go to Exercises',
@@ -68,317 +57,349 @@ export default function PerfectPlanScreen() {
     }
   };
 
+  // Color helpers
+  const bgThemeColor = isDark ? '#0c0b16' : '#f6f5fb';
+  const cardBgColor = isDark ? 'rgba(27, 24, 54, 0.5)' : '#ffffff';
+  const cardBorderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(124, 58, 237, 0.08)';
+  const textColor = isDark ? '#ffffff' : '#0f0d1e';
+  const textMutedColor = isDark ? '#9ca3af' : '#6b7280';
+  const accentPurple = '#8b5cf6';
+  const accentGreen = '#10b981';
+  const accentPink = '#ec4899';
+  const accentBlue = '#3b82f6';
+
   return (
-    <ScreenContainer contentStyle={styles.container}>
-      {/* Custom Header */}
+    <ScreenContainer scrollable contentStyle={[styles.container, { backgroundColor: bgThemeColor }]}>
+      {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={[styles.backBtn, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
-          <Feather name="chevron-left" size={24} color={colors.onSurface} />
+        <Pressable onPress={handleBack} style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0,0,0,0.03)' }]}>
+          <Feather name="chevron-left" size={22} color={textColor} />
         </Pressable>
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.onSurface }]}>AI Perfect Plan</Text>
-          <Text style={[styles.caption, { color: colors.primary }]}>Tailored Behavioral Routine</Text>
+          <Text style={[styles.title, { color: textColor }]}>Your Perfect Plan</Text>
+          <Text style={[styles.subtitle, { color: textMutedColor }]}>AI-calibrated to your behavioral patterns</Text>
         </View>
       </View>
 
-      {/* Intro Overview Card */}
-      <GlassCard accent="primary" style={styles.introCard}>
-        <View style={styles.introIconRow}>
-          <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(162,203,253,0.18)' : 'rgba(162,203,253,0.35)' }]}>
-            <Feather name="trending-up" size={20} color={isDark ? '#a2cbfd' : '#3b82f6'} />
+      {/* Projected Improvement Card */}
+      <GlassCard style={[styles.improvementCard, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
+        <View style={styles.improvementHeader}>
+          <View style={[styles.sparkleIconContainer, { backgroundColor: 'rgba(139, 92, 246, 0.08)' }]}>
+            <Feather name="sparkles" size={16} color={accentPurple} />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: colors.onSurface }]}>Telemetry Correlation Plan</Text>
-            <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
-              MindTrace calculated this custom schedule by identifying links between device screen-on intervals and typing stress spikes.
-            </Text>
+          <View>
+            <Text style={[styles.improvementTitle, { color: textColor }]}>Projected improvement</Text>
+            <Text style={[styles.improvementSub, { color: textMutedColor }]}>Following this plan for 7 days</Text>
           </View>
         </View>
-      </GlassCard>
-
-      {/* Plan Status / CTA Section */}
-      <GlassCard accent="secondary" style={styles.statusCard}>
-        <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Plan Status</Text>
         
+        <View style={styles.badgeRow}>
+          <View style={[styles.impBadge, { backgroundColor: 'rgba(139, 92, 246, 0.08)' }]}>
+            <Text style={[styles.impBadgeText, { color: accentPurple }]}>Mood +14%</Text>
+          </View>
+          <View style={[styles.impBadge, { backgroundColor: 'rgba(59, 130, 246, 0.08)' }]}>
+            <Text style={[styles.impBadgeText, { color: accentBlue }]}>Sleep +22%</Text>
+          </View>
+          <View style={[styles.impBadge, { backgroundColor: 'rgba(236, 72, 153, 0.08)' }]}>
+            <Text style={[styles.impBadgeText, { color: accentPink }]}>Stress -31%</Text>
+          </View>
+        </View>
+      </GlassCard>
+
+      {/* Daily Routine Blocks */}
+      <View style={styles.scheduleContainer}>
+        {/* Morning block */}
+        <View style={[styles.scheduleBlock, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
+          <View style={styles.blockHeader}>
+            <View style={styles.blockHeaderLeft}>
+              <Feather name="sun" size={16} color={accentBlue} style={{ marginRight: 6 }} />
+              <Text style={[styles.blockTitle, { color: textColor }]}>Morning</Text>
+              <Text style={[styles.blockTime, { color: textMutedColor }]}>6:30 AM</Text>
+            </View>
+            <View style={[styles.statusDot, { backgroundColor: accentBlue }]} />
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>Wake without alarm</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>—</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(59, 130, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentBlue }]}>+Mood 8%</Text>
+            </View>
+          </View>
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>5-min gratitude log</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>5 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(59, 130, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentBlue }]}>+Mood 12%</Text>
+            </View>
+          </View>
+
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>10-min stretch</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>10 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(59, 130, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentBlue }]}>+Activity</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Midday block */}
+        <View style={[styles.scheduleBlock, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
+          <View style={styles.blockHeader}>
+            <View style={styles.blockHeaderLeft}>
+              <Feather name="activity" size={16} color={accentGreen} style={{ marginRight: 6 }} />
+              <Text style={[styles.blockTitle, { color: textColor }]}>Midday</Text>
+              <Text style={[styles.blockTime, { color: textMutedColor }]}>12:30 PM</Text>
+            </View>
+            <View style={[styles.statusDot, { backgroundColor: accentGreen }]} />
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>20-min mindful walk</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>20 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(16, 185, 129, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentGreen }]}>-Stress 18%</Text>
+            </View>
+          </View>
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>Screen-free lunch</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>30 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(16, 185, 129, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentGreen }]}>+Focus</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Evening block */}
+        <View style={[styles.scheduleBlock, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
+          <View style={styles.blockHeader}>
+            <View style={styles.blockHeaderLeft}>
+              <Feather name="moon" size={16} color={accentPurple} style={{ marginRight: 6 }} />
+              <Text style={[styles.blockTitle, { color: textColor }]}>Evening</Text>
+              <Text style={[styles.blockTime, { color: textMutedColor }]}>9:00 PM</Text>
+            </View>
+            <View style={[styles.statusDot, { backgroundColor: accentPurple }]} />
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>Digital sunset — screens off</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>—</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(139, 92, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentPurple }]}>+Sleep 22%</Text>
+            </View>
+          </View>
+          
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>4-7-8 breathing</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>8 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(139, 92, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentPurple }]}>-Stress 30%</Text>
+            </View>
+          </View>
+
+          <View style={styles.routineRow}>
+            <Text style={[styles.routineItemName, { color: textColor }]}>Journal entry</Text>
+            <Text style={[styles.routineDuration, { color: textMutedColor }]}>5 min</Text>
+            <View style={[styles.routineTag, { backgroundColor: 'rgba(139, 92, 246, 0.06)' }]}>
+              <Text style={[styles.routineTagText, { color: accentPurple }]}>+Mood 10%</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Activate button */}
+      <View style={styles.bottomContainer}>
         {isPlanActive ? (
-          <View style={styles.activePlanContainer}>
-            <View style={[styles.activeBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-              <Feather name="check-circle" size={16} color="#10b981" />
-              <Text style={[styles.activeBadgeText, { color: '#10b981' }]}>Perfect Plan Active</Text>
-            </View>
-            <Text style={[styles.statusText, { color: colors.onSurfaceVariant }]}>
-              Your custom posture checks and dynamic rolls are configured in your Exercises tab.
-            </Text>
-            <PrimaryButton 
-              label="Go to Exercises Library" 
-              onPress={() => router.push('/(tabs)/exercises')} 
-            />
-          </View>
+          <Pressable
+            onPress={() => router.push('/(tabs)/exercises')}
+            style={[styles.activateBtn, { backgroundColor: accentPurple }]}
+          >
+            <Feather name="check-circle" size={16} color="#ffffff" style={{ marginRight: 8 }} />
+            <Text style={styles.activateBtnText}>Plan Active (Go to Exercises)</Text>
+          </Pressable>
         ) : (
-          <View style={styles.inactivePlanContainer}>
-            <Text style={[styles.statusText, { color: colors.onSurfaceVariant, marginBottom: 8 }]}>
-              Unlock custom physical breaks automatically synced to your wellness logs. Activating this plan installs customized routines in your library.
-            </Text>
-            <PrimaryButton
-              label={activating ? 'Configuring...' : 'Auto-Configure Perfect Plan'}
-              onPress={handleActivate}
-              loading={activating}
-            />
-          </View>
-        )}
-      </GlassCard>
-
-      {/* Deep-Dive Insights Bullet List */}
-      <Text style={[styles.sectionHeading, { color: colors.onSurface }]}>Habit Findings</Text>
-      <GlassCard style={styles.findingsCard}>
-        <View style={styles.findingsBullet}>
-          <View style={[styles.bulletCircle, { backgroundColor: isDark ? 'rgba(247,190,233,0.18)' : 'rgba(247,190,233,0.35)' }]}>
-            <Feather name="moon" size={14} color={isDark ? '#f7bee9' : '#ec4899'} />
-          </View>
-          <Text style={[styles.findingText, { color: colors.onSurfaceVariant }]}>
-            We've noticed your typing errors drop by <Text style={{ fontWeight: '700', color: colors.onSurface }}>22%</Text> when you get more than 7.5 hours of sleep.
-          </Text>
-        </View>
-
-        <View style={styles.findingsBullet}>
-          <View style={[styles.bulletCircle, { backgroundColor: isDark ? 'rgba(162,203,253,0.18)' : 'rgba(162,203,253,0.35)' }]}>
-            <Feather name="alert-circle" size={14} color={isDark ? '#a2cbfd' : '#3b82f6'} />
-          </View>
-          <Text style={[styles.findingText, { color: colors.onSurfaceVariant }]}>
-            Your stress spikes by <Text style={{ fontWeight: '700', color: colors.onSurface }}>18%</Text> on days when screen-on time exceeds 4.5 hours.
-          </Text>
-        </View>
-      </GlassCard>
-
-      {/* Recommendations Checklist */}
-      <Text style={[styles.sectionHeading, { color: colors.onSurface }]}>Recommended Action Items</Text>
-
-      {isRecsLoading && <ActivityIndicator color={colors.primary} size="small" style={{ marginVertical: 24 }} />}
-
-      {!isRecsLoading && (recs || []).map((rec) => {
-        let details = { description: rec.body, exercise: null as any };
-        try {
-          details = JSON.parse(rec.body);
-        } catch {}
-
-        const exercise = details.exercise;
-        const recSteps = checkedSteps[rec.id] || {};
-
-        return (
-          <GlassCard key={rec.id} accent="primary">
-            <View style={styles.recHeaderRow}>
-              <StatusChip label={rec.category} tone={rec.category === 'mindfulness' ? 'active' : rec.category === 'sleep' ? 'medium' : rec.category === 'activity' ? 'low' : 'neutral'} />
-              <Text style={[styles.recTitle, { color: colors.onSurface }]}>{rec.title}</Text>
-            </View>
-            <Text style={[styles.recDesc, { color: colors.onSurfaceVariant }]}>{details.description}</Text>
-
-            {exercise && (
-              <View style={[styles.exerciseBox, { backgroundColor: colors.backgroundDeep, borderColor: colors.outline }]}>
-                <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{exercise.name}</Text>
-                
-                {/* Step checklist */}
-                <View style={styles.stepsList}>
-                  {exercise.steps.map((step: string, index: number) => {
-                    const isChecked = !!recSteps[index];
-                    return (
-                      <Pressable
-                        key={index}
-                        onPress={() => toggleStep(rec.id, index)}
-                        style={[
-                          styles.stepRow,
-                          {
-                            backgroundColor: isChecked
-                              ? (isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)')
-                              : 'transparent',
-                          },
-                        ]}
-                      >
-                        <Feather
-                          name={isChecked ? 'check-circle' : 'circle'}
-                          size={16}
-                          color={isChecked ? colors.riskLow : colors.onSurfaceVariant}
-                        />
-                        <Text
-                          style={[
-                            styles.stepText,
-                            {
-                              color: isChecked ? colors.onSurfaceVariant : colors.onSurface,
-                              textDecorationLine: isChecked ? 'line-through' : 'none',
-                            },
-                          ]}
-                        >
-                          {step}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
+          <Pressable
+            onPress={handleActivate}
+            disabled={activating}
+            style={[styles.activateBtn, { backgroundColor: accentPurple }]}
+          >
+            {activating ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <Feather name="sparkles" size={16} color="#ffffff" style={{ marginRight: 8 }} />
+                <Text style={styles.activateBtnText}>Activate My Plan</Text>
+              </>
             )}
-          </GlassCard>
-        );
-      })}
+          </Pressable>
+        )}
+      </View>
 
-      <PrimaryButton label="Back to Dashboard" onPress={() => router.back()} />
+      {/* visual spacer */}
+      <View style={{ height: 40 }} />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: spacing.md,
-    gap: 16,
+    paddingHorizontal: spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 54 : 32,
     paddingBottom: 40,
+    gap: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.xs,
+    gap: 12,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
-    flexDirection: 'column',
+    flex: 1,
+    gap: 2,
   },
   title: {
-    ...typography.headlineLgMobile,
     fontSize: 22,
+    fontWeight: 'bold',
   },
-  caption: {
-    ...typography.labelCaps,
+  subtitle: {
+    fontSize: 12.5,
+    fontWeight: '500',
   },
-  introCard: {
+  improvementCard: {
     padding: spacing.md,
-  },
-  introIconRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  cardSub: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  statusCard: {
-    padding: spacing.md,
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  activePlanContainer: {
-    gap: 12,
-    marginTop: 4,
-  },
-  inactivePlanContainer: {
-    gap: 8,
-    marginTop: 4,
-  },
-  activeBadge: {
-    flexDirection: 'row',
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
-  },
-  activeBadgeText: {
-    ...typography.labelCaps,
-    fontSize: 11,
-    textTransform: 'none',
-  },
-  statusText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  sectionHeading: {
-    ...typography.headlineLgMobile,
-    fontSize: 18,
-    marginTop: 8,
-  },
-  findingsCard: {
-    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
     gap: 14,
   },
-  findingsBullet: {
+  improvementHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
   },
-  bulletCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  sparkleIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
   },
-  findingText: {
-    fontSize: 13,
-    lineHeight: 18,
+  improvementTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  improvementSub: {
+    fontSize: 11.5,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  impBadge: {
     flex: 1,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  recHeaderRow: {
+  impBadgeText: {
+    fontSize: 11.5,
+    fontWeight: 'bold',
+  },
+  scheduleContainer: {
+    gap: 12,
+  },
+  scheduleBlock: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    padding: spacing.md,
+    gap: 10,
+  },
+  blockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  blockHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 6,
   },
-  recTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    flex: 1,
+  blockTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginRight: 8,
   },
-  recDesc: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 8,
+  blockTime: {
+    fontSize: 11.5,
+    fontWeight: 'bold',
   },
-  exerciseBox: {
-    borderRadius: radius.md,
-    borderWidth: 1,
-    padding: spacing.sm,
-    gap: 6,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  exerciseName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#3b82f6',
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(124, 58, 237, 0.08)',
   },
-  stepsList: {
-    gap: 6,
-  },
-  stepRow: {
+  routineRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    padding: 6,
-    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
   },
-  stepText: {
-    fontSize: 12,
-    lineHeight: 16,
+  routineItemName: {
+    fontSize: 13,
+    fontWeight: '500',
     flex: 1,
+  },
+  routineDuration: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginRight: 10,
+    width: 50,
+    textAlign: 'right',
+  },
+  routineTag: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  routineTagText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  bottomContainer: {
+    marginTop: 10,
+  },
+  activateBtn: {
+    height: 48,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activateBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
