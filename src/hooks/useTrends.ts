@@ -18,12 +18,10 @@ export function useTrends(range: TrendRange) {
         sleep: getMetricSeries(snapshots, 'sleepHours'),
         activity: getMetricSeries(snapshots, 'activityLevel'),
         stress: getMetricSeries(snapshots, 'stressIndex'),
-        labels: snapshots.map((snapshot) =>
-          new Date(snapshot.recordedAt).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          }),
-        ),
+        labels: snapshots.map((snapshot) => {
+          const date = new Date(snapshot.recordedAt);
+          return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })}`;
+        }),
       };
     },
     enabled: !!user,

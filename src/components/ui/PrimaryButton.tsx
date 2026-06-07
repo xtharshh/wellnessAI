@@ -16,7 +16,7 @@ export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButt
 
   return (
     <Pressable
-      style={[styles.button, { backgroundColor: colors.primaryAccent }, (disabled || loading) && styles.disabled]}
+      style={[styles.button, { backgroundColor: colors.primary }, (disabled || loading) && styles.disabled]}
       onPress={onPress}
       disabled={disabled || loading}>
       {loading ? (

@@ -17,6 +17,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     id: profile.id,
     email: session.user.email ?? '',
     displayName: profile.display_name ?? '',
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '', // Not used with cloud auth
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,
@@ -68,6 +69,7 @@ export async function signUp(input: {
     id: user.id,
     email: user.email ?? '',
     displayName: profile?.display_name ?? input.displayName,
+    avatarUrl: profile?.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile?.privacy_consent_at ?? null,
     onboardingComplete: profile?.onboarding_complete ?? false,
@@ -104,6 +106,7 @@ export async function signIn(email: string, password: string): Promise<UserProfi
     id: profile.id,
     email: user.email ?? '',
     displayName: profile.display_name ?? '',
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,
@@ -116,9 +119,15 @@ export async function signOut(): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function resetPassword(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw new Error(error.message);
+}
+
 export async function updateUser(userId: string, patch: Partial<UserProfile>): Promise<UserProfile> {
   const dbPatch: Record<string, any> = {};
   if (patch.displayName !== undefined) dbPatch.display_name = patch.displayName;
+  if (patch.avatarUrl !== undefined) dbPatch.avatar_url = patch.avatarUrl;
   if (patch.onboardingComplete !== undefined) dbPatch.onboarding_complete = patch.onboardingComplete;
   if (patch.privacyConsentAt !== undefined) dbPatch.privacy_consent_at = patch.privacyConsentAt;
 
@@ -139,6 +148,7 @@ export async function updateUser(userId: string, patch: Partial<UserProfile>): P
     id: profile.id,
     email: session?.user?.email ?? '',
     displayName: profile.display_name ?? '',
+    avatarUrl: profile.avatar_url ?? null,
     passwordHash: '',
     privacyConsentAt: profile.privacy_consent_at,
     onboardingComplete: profile.onboarding_complete,

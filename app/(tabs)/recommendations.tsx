@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Pressable, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Pressable, Alert, ActivityIndicator, ScrollView, Image, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 import { GlassCard } from '@/src/components/ui/GlassCard';
@@ -25,6 +25,26 @@ const categoryIcon = {
   mindfulness: 'wind' as const,
   activity: 'activity' as const,
   general: 'compass' as const,
+};
+
+const LIFESTYLE_ICONS = {
+  books: 'book' as const,
+  movies: 'video' as const,
+  songs: 'music' as const,
+  podcasts: 'mic' as const,
+  meditation: 'anchor' as const,
+  productivity: 'zap' as const,
+  'stress-relief': 'sun' as const,
+};
+
+const LIFESTYLE_COLORS = {
+  books: '#ffdc62',
+  movies: '#a2cbfd',
+  songs: '#ffb3d9',
+  podcasts: '#c4b5fd',
+  meditation: '#6ee7b7',
+  productivity: '#b59cff',
+  'stress-relief': '#fca5a5',
 };
 
 function ExerciseTimer({ duration }: { duration: string }) {
@@ -101,8 +121,27 @@ function ExerciseTimer({ duration }: { duration: string }) {
 
 export default function RecommendationsScreen() {
   const router = useRouter();
-  const { data, isLoading, regenerate, dismiss, complete } = useRecommendations();
+  const { data, isLoading, lifestyleRecs, isLifestyleLoading, regenerate, dismiss, complete } = useRecommendations();
   const { colors, isDark } = useTheme();
+
+  // Screen layout tab controls
+  const [activeTab, setActiveTab] = useState<'practices' | 'lifestyle'>('practices');
+
+  const handleOpenLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Unable to open link', 'No app or browser was found to open this URL.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to open link.');
+    }
+  };
+  
+  // Category controls for Lifestyle recommendations
+  const [lifestyleCategory, setLifestyleCategory] = useState<string>('all');
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [checkedSteps, setCheckedSteps] = useState<Record<string, Record<number, boolean>>>({});
@@ -120,162 +159,281 @@ export default function RecommendationsScreen() {
     });
   };
 
+  const filteredLifestyle = (lifestyleRecs || []).filter((item) =>
+    lifestyleCategory === 'all' ? true : item.category === lifestyleCategory
+  );
+
   return (
     <ScreenContainer scrollable>
       <View style={styles.headerSection}>
-        <Text style={[styles.eyebrow, { color: colors.primary }]}>AI Recommendations</Text>
-        <Text style={[styles.title, { color: colors.onSurface }]}>Personalized guidance</Text>
+        <Text style={[styles.eyebrow, { color: colors.primary }]}>AI Assistant</Text>
+        <Text style={[styles.title, { color: colors.onSurface }]}>Personalized Recs</Text>
         <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
-          Generated from your latest wellness trace patterns.
+          Empathetic guidance curated from your latest digital behavior telemetry.
         </Text>
       </View>
 
-      <View style={styles.actionContainer}>
-        <PrimaryButton
-          label={regenerate.isPending ? 'Generating...' : 'Regenerate Recommendations'}
-          onPress={() =>
-            regenerate.mutate(undefined, {
-              onSuccess: () => router.push('/ai-insights'),
-            })
-          }
-          loading={regenerate.isPending}
-        />
+      {/* Main Tab Controls */}
+      <View style={[styles.tabContainer, { backgroundColor: colors.backgroundDeep, borderColor: colors.outline }]}>
+        <Pressable
+          onPress={() => setActiveTab('practices')}
+          style={[styles.tab, activeTab === 'practices' && [styles.tabActive, { backgroundColor: colors.surface }]]}
+        >
+          <Text style={[styles.tabText, { color: activeTab === 'practices' ? colors.onSurface : colors.onSurfaceVariant }]}>
+            Active Practices
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setActiveTab('lifestyle')}
+          style={[styles.tab, activeTab === 'lifestyle' && [styles.tabActive, { backgroundColor: colors.surface }]]}
+        >
+          <Text style={[styles.tabText, { color: activeTab === 'lifestyle' ? colors.onSurface : colors.onSurfaceVariant }]}>
+            Aesthetic Lifestyle
+          </Text>
+        </Pressable>
       </View>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={colors.primary} size="small" />
-          <Text style={[styles.loading, { color: colors.onSurfaceVariant }]}>Loading recommendations...</Text>
-        </View>
-      ) : null}
+      {activeTab === 'practices' ? (
+        <View style={styles.sectionBody}>
+          <View style={styles.actionContainer}>
+            <PrimaryButton
+              label={regenerate.isPending ? 'Generating...' : 'Regenerate Recommendations'}
+              onPress={() =>
+                regenerate.mutate(undefined, {
+                  onSuccess: () => router.push('/ai-insights'),
+                })
+              }
+              loading={regenerate.isPending}
+            />
+          </View>
 
-      <View style={styles.recsList}>
-        {(data ?? []).map((rec) => {
-          let details = { description: rec.body, exercise: null as any };
-          try {
-            details = JSON.parse(rec.body);
-          } catch {}
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text style={[styles.loading, { color: colors.onSurfaceVariant }]}>Loading recommendations...</Text>
+            </View>
+          ) : null}
 
-          const isExpanded = expandedId === rec.id;
-          const exercise = details.exercise;
-          const recSteps = checkedSteps[rec.id] || {};
+          <View style={styles.recsList}>
+            {(data ?? []).map((rec) => {
+              let details = { description: rec.body, exercise: null as any };
+              try {
+                details = JSON.parse(rec.body);
+              } catch {}
 
-          return (
-            <GlassCard key={rec.id} accent={rec.category === 'mindfulness' || rec.category === 'sleep' ? 'primary' : 'secondary'}>
-              <Pressable onPress={() => setExpandedId(isExpanded ? null : rec.id)} style={styles.cardHeader}>
-                <View style={styles.recTitleBlock}>
-                  <View style={styles.badgeRow}>
-                    <StatusChip label={rec.category} tone={categoryTone[rec.category]} />
-                    {rec.completed ? <StatusChip label="Done" tone="low" /> : null}
-                  </View>
-                  <Text style={[styles.recTitle, { color: colors.onSurface }]}>{rec.title}</Text>
-                </View>
-                <View style={styles.headerRight}>
-                  <Feather name={categoryIcon[rec.category]} size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                  <Feather name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.onSurfaceVariant} />
-                </View>
-              </Pressable>
+              const isExpanded = expandedId === rec.id;
+              const exercise = details.exercise;
+              const recSteps = checkedSteps[rec.id] || {};
 
-              {/* Collapsible content */}
-              {isExpanded && (
-                <View style={[styles.expandedContent, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
-                  <Text style={[styles.explanationText, { color: colors.onSurfaceVariant }]}>
-                    {details.description}
-                  </Text>
-
-                  {exercise && (
-                    <View style={[styles.exerciseBox, { backgroundColor: colors.backgroundDeep, borderColor: colors.outline }]}>
-                      <View style={styles.exerciseHeader}>
-                        <View style={styles.exerciseHeaderLeft}>
-                          <Feather name="activity" size={14} color={colors.primary} />
-                          <Text style={[styles.exerciseTitle, { color: colors.primary }]}>Suggested Exercise</Text>
-                        </View>
-                        <View style={styles.exerciseHeaderRight}>
-                          <Feather name="clock" size={12} color={colors.secondary} />
-                          <Text style={[styles.exerciseDuration, { color: colors.secondary }]}> {exercise.duration}</Text>
-                        </View>
+              return (
+                <GlassCard key={rec.id} accent={rec.category === 'mindfulness' || rec.category === 'sleep' ? 'primary' : 'secondary'}>
+                  <Pressable onPress={() => setExpandedId(isExpanded ? null : rec.id)} style={styles.cardHeader}>
+                    <View style={styles.recTitleBlock}>
+                      <View style={styles.badgeRow}>
+                        <StatusChip label={rec.category} tone={categoryTone[rec.category]} />
+                        {rec.completed ? <StatusChip label="Done" tone="low" /> : null}
                       </View>
-                      <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{exercise.name}</Text>
-                      
-                      {/* Steps List */}
-                      <View style={styles.stepsList}>
-                        {exercise.steps.map((step: string, index: number) => {
-                          const isChecked = !!recSteps[index];
-                          return (
-                            <Pressable
-                              key={index}
-                              onPress={() => toggleStep(rec.id, index)}
-                              style={[
-                                styles.stepRow,
-                                {
-                                  backgroundColor: isChecked
-                                    ? (isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)')
-                                    : 'transparent',
-                                },
-                              ]}
-                            >
-                              <Feather
-                                name={isChecked ? 'check-circle' : 'circle'}
-                                size={18}
-                                color={isChecked ? colors.riskLow : colors.onSurfaceVariant}
-                              />
-                              <Text
-                                style={[
-                                  styles.stepText,
-                                  {
-                                    color: isChecked ? colors.onSurfaceVariant : colors.onSurface,
-                                    textDecorationLine: isChecked ? 'line-through' : 'none',
-                                  },
-                                ]}
-                              >
-                                {step}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
+                      <Text style={[styles.recTitle, { color: colors.onSurface }]}>{rec.title}</Text>
+                    </View>
+                    <View style={styles.headerRight}>
+                      <Feather name={categoryIcon[rec.category]} size={16} color={colors.primary} style={{ marginRight: 8 }} />
+                      <Feather name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.onSurfaceVariant} />
+                    </View>
+                  </Pressable>
 
-                      {/* Explanation */}
-                      {exercise.explanation && (
-                        <Text style={[styles.physiologyText, { color: colors.onSurfaceVariant }]}>
-                          * {exercise.explanation}
-                        </Text>
+                  {isExpanded && (
+                    <View style={[styles.expandedContent, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
+                      <Text style={[styles.explanationText, { color: colors.onSurfaceVariant }]}>
+                        {details.description}
+                      </Text>
+
+                      {exercise && (
+                        <View style={[styles.exerciseBox, { backgroundColor: colors.backgroundDeep, borderColor: colors.outline }]}>
+                          <View style={styles.exerciseHeader}>
+                            <View style={styles.exerciseHeaderLeft}>
+                              <Feather name="activity" size={14} color={colors.primary} />
+                              <Text style={[styles.exerciseTitle, { color: colors.primary }]}>Suggested Exercise</Text>
+                            </View>
+                            <View style={styles.exerciseHeaderRight}>
+                              <Feather name="clock" size={12} color={colors.secondary} />
+                              <Text style={[styles.exerciseDuration, { color: colors.secondary }]}> {exercise.duration}</Text>
+                            </View>
+                          </View>
+                          <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{exercise.name}</Text>
+                          
+                          <View style={styles.stepsList}>
+                            {exercise.steps.map((step: string, index: number) => {
+                              const isChecked = !!recSteps[index];
+                              return (
+                                <Pressable
+                                  key={index}
+                                  onPress={() => toggleStep(rec.id, index)}
+                                  style={[
+                                    styles.stepRow,
+                                    {
+                                      backgroundColor: isChecked
+                                        ? (isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)')
+                                        : 'transparent',
+                                    },
+                                  ]}
+                                >
+                                  <Feather
+                                    name={isChecked ? 'check-circle' : 'circle'}
+                                    size={18}
+                                    color={isChecked ? colors.riskLow : colors.onSurfaceVariant}
+                                  />
+                                  <Text
+                                    style={[
+                                      styles.stepText,
+                                      {
+                                        color: isChecked ? colors.onSurfaceVariant : colors.onSurface,
+                                        textDecorationLine: isChecked ? 'line-through' : 'none',
+                                      },
+                                    ]}
+                                  >
+                                    {step}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+
+                          {exercise.explanation && (
+                            <Text style={[styles.physiologyText, { color: colors.onSurfaceVariant }]}>
+                              * {exercise.explanation}
+                            </Text>
+                          )}
+
+                          <ExerciseTimer duration={exercise.duration} />
+                        </View>
                       )}
 
-                      {/* Timer */}
-                      <ExerciseTimer duration={exercise.duration} />
+                      <View style={styles.actions}>
+                        {!rec.completed ? (
+                          <SecondaryButton
+                            label="Mark Done"
+                            onPress={() => {
+                              complete.mutate(rec.id);
+                              Alert.alert('Action Logged', 'This recommendation has been marked as successfully complete.');
+                            }}
+                          />
+                        ) : null}
+                        <SecondaryButton label="Dismiss" onPress={() => dismiss.mutate(rec.id)} />
+                      </View>
                     </View>
                   )}
+                </GlassCard>
+              );
+            })}
+          </View>
 
-                  <View style={styles.actions}>
-                    {!rec.completed ? (
-                      <SecondaryButton
-                        label="Mark Done"
-                        onPress={() => {
-                          complete.mutate(rec.id);
-                          Alert.alert('Action Logged', 'This recommendation has been marked as successfully complete.');
-                        }}
-                      />
-                    ) : null}
-                    <SecondaryButton label="Dismiss" onPress={() => dismiss.mutate(rec.id)} />
+          {!isLoading && !(data ?? []).length ? (
+            <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>No active recommendations. Tap regenerate to create new ones.</Text>
+          ) : null}
+        </View>
+      ) : (
+        <View style={styles.sectionBody}>
+          {/* Lifestyle category pills filter */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+            {['all', 'books', 'movies', 'songs', 'podcasts', 'meditation', 'productivity', 'stress-relief'].map((cat) => {
+              const active = lifestyleCategory === cat;
+              return (
+                <Pressable
+                  key={cat}
+                  onPress={() => setLifestyleCategory(cat)}
+                  style={[
+                    styles.pillChip,
+                    { borderColor: colors.outline },
+                    active && { backgroundColor: colors.primary, borderColor: colors.primary }
+                  ]}
+                >
+                  <Text style={[styles.pillChipText, { color: active ? '#1b1b22' : colors.onSurfaceVariant, fontWeight: active ? 'bold' : 'normal' }]}>
+                    {cat.toUpperCase()}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {isLifestyleLoading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 40 }} />
+          ) : null}
+
+          {/* Lifestyle Recommendations List */}
+          <View style={styles.recsList}>
+            {filteredLifestyle.map((item) => {
+              const catColor = LIFESTYLE_COLORS[item.category as keyof typeof LIFESTYLE_COLORS] || colors.primary;
+              const catIcon = LIFESTYLE_ICONS[item.category as keyof typeof LIFESTYLE_ICONS] || 'compass';
+
+              return (
+                <GlassCard key={item.id} accent="secondary" style={styles.lifestyleCard}>
+                  <View style={styles.lifestyleHeader}>
+                    <View style={[styles.lifestyleIconCircle, { backgroundColor: catColor + '22' }]}>
+                      <Feather name={catIcon} size={14} color={catColor} />
+                    </View>
+                    <View style={styles.lifestyleMeta}>
+                      <Text style={[styles.lifestyleCategory, { color: catColor }]}>{item.category.toUpperCase()}</Text>
+                      <Text style={[styles.lifestyleCreator, { color: colors.onSurfaceVariant }]}>by {item.creator}</Text>
+                    </View>
                   </View>
-                </View>
-              )}
-            </GlassCard>
-          );
-        })}
-      </View>
 
-      {!isLoading && !(data ?? []).length ? (
-        <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>No active recommendations. Tap regenerate to create new ones.</Text>
-      ) : null}
+                  {item.imageUrl && (
+                    <Pressable
+                      onPress={() => item.linkUrl && handleOpenLink(item.linkUrl)}
+                      style={styles.imageContainer}
+                    >
+                      <Image source={{ uri: item.imageUrl }} style={styles.lifestyleImage} />
+                      {item.linkUrl && (
+                        <View style={styles.imageLinkIndicator}>
+                          <Feather name="external-link" size={14} color="#ffffff" />
+                        </View>
+                      )}
+                    </Pressable>
+                  )}
+
+                  <Text style={[styles.lifestyleTitle, { color: colors.onSurface }]}>{item.title}</Text>
+                  <Text style={[styles.lifestyleDesc, { color: colors.onSurfaceVariant }]}>{item.description}</Text>
+
+                  <View style={[styles.reasonBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.outline }]}>
+                    <Feather name="cpu" size={12} color={colors.primary} />
+                    <Text style={[styles.reasonText, { color: colors.onSurfaceVariant }]}>{item.reason}</Text>
+                  </View>
+
+                  {item.linkUrl && (
+                    <Pressable
+                      onPress={() => handleOpenLink(item.linkUrl!)}
+                      style={[styles.linkButton, { backgroundColor: catColor + '18', borderColor: catColor + '40' }]}
+                    >
+                      <Feather name="external-link" size={12} color={catColor} />
+                      <Text style={[styles.linkButtonText, { color: catColor }]}>
+                        {item.category === 'songs' ? 'Listen on YouTube' :
+                         item.category === 'podcasts' ? 'Listen on Spotify' :
+                         item.category === 'meditation' ? 'Watch Guide' :
+                         item.category === 'books' ? 'Read on Goodreads' :
+                         item.category === 'movies' ? 'Watch Trailer' : 'Open Curation'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </GlassCard>
+              );
+            })}
+          </View>
+
+          {!isLifestyleLoading && filteredLifestyle.length === 0 ? (
+            <Text style={[styles.empty, { color: colors.onSurfaceVariant }]}>No recommendations found in this category.</Text>
+          ) : null}
+        </View>
+      )}
+
+      {/* visual spacer */}
+      <View style={{ height: 100 }} />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   headerSection: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   eyebrow: {
     ...typography.labelCaps,
@@ -291,8 +449,53 @@ const styles = StyleSheet.create({
     ...typography.bodyMd,
     lineHeight: 20,
   },
+  tabContainer: {
+    flexDirection: 'row',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: 4,
+    marginVertical: 14,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  tabText: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  sectionBody: {
+    gap: 14,
+  },
+  pillsScroll: {
+    gap: 8,
+    paddingVertical: 4,
+    marginBottom: 8,
+  },
+  pillChip: {
+    borderWidth: 1,
+    borderRadius: radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 6,
+  },
+  pillChipText: {
+    fontSize: 10.5,
+    letterSpacing: 0.4,
+  },
   actionContainer: {
-    marginVertical: spacing.sm,
+    marginVertical: 4,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -454,5 +657,91 @@ const styles = StyleSheet.create({
     ...typography.bodyMd,
     textAlign: 'center',
     marginTop: 24,
+  },
+  lifestyleCard: {
+    padding: 14,
+    gap: 8,
+  },
+  lifestyleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  lifestyleIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lifestyleMeta: {
+    gap: 1,
+  },
+  lifestyleCategory: {
+    ...typography.labelCaps,
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  lifestyleCreator: {
+    fontSize: 11.5,
+  },
+  lifestyleTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  lifestyleDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  reasonBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: 8,
+    marginTop: 4,
+  },
+  reasonText: {
+    fontSize: 11,
+    flex: 1,
+  },
+  imageContainer: {
+    marginVertical: 6,
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: radius.md,
+    height: 120,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  lifestyleImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLinkIndicator: {
+    position: 'absolute',
+    right: 8,
+    bottom: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  linkButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

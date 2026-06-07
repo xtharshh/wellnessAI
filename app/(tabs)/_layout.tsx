@@ -27,7 +27,7 @@ export default function TabLayout() {
           bottom: 16,
           left: 16,
           right: 16,
-          backgroundColor: '#0f172a', // Deep slate-black premium background
+          backgroundColor: colors.surface,
           borderRadius: 28,
           height: 68,
           paddingBottom: 10,
@@ -39,8 +39,8 @@ export default function TabLayout() {
           shadowRadius: 16,
           elevation: 8,
         },
-        tabBarActiveTintColor: '#a2cbfd', // Soft Blue active highlight
-        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.4)',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.onSurfaceVariant,
         tabBarLabelStyle: {
           fontFamily: typography.labelCaps.fontFamily,
           fontSize: 10,
@@ -50,15 +50,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: 'Home',
           tabBarIcon: ({ color }) => <TabIcon name="activity" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="trends"
+        name="chat"
         options={{
-          title: 'Trends',
-          tabBarIcon: ({ color }) => <TabIcon name="trending-up" color={color} />,
+          title: 'AI Chat',
+          tabBarIcon: ({ color }) => <TabIcon name="message-circle" color={color} />,
         }}
       />
       <Tabs.Screen

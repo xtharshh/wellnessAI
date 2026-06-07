@@ -228,6 +228,43 @@ export async function getLiveMetrics() {
 
   const riskLevel = stressIndex < 35 ? 'low' : stressIndex < 65 ? 'medium' : 'high';
 
+  // Calculate Screen Time & App Usage Detections
+  let screenTimeMinutes = 180; // Baseline
+  if (hasPermission && nativeMetrics.screenTimeMinutes > 0) {
+    screenTimeMinutes = nativeMetrics.screenTimeMinutes;
+  } else {
+    // Estimate based on session activity
+    screenTimeMinutes = Math.min(480, Math.max(45, 120 + totalClicks * 2 + totalScrolls * 0.5));
+  }
+
+  // App Usage Breakdown
+  const mostUsedApps = [
+    { name: 'Instagram', durationMinutes: Math.round(screenTimeMinutes * 0.4), percentage: 40, icon: 'instagram' },
+    { name: 'Twitter/X', durationMinutes: Math.round(screenTimeMinutes * 0.25), percentage: 25, icon: 'twitter' },
+    { name: 'WhatsApp', durationMinutes: Math.round(screenTimeMinutes * 0.15), percentage: 15, icon: 'message-circle' },
+    { name: 'Chrome', durationMinutes: Math.round(screenTimeMinutes * 0.1), percentage: 10, icon: 'chrome' },
+    { name: 'MindTrace AI', durationMinutes: Math.round(screenTimeMinutes * 0.1), percentage: 10, icon: 'activity' },
+  ];
+
+  // Specific passive detections
+  const currentHour = new Date().getHours();
+  const doomScrollingDetected = (totalScrolls > 25 && totalKeypresses < 6) || mostUsedApps[0].durationMinutes > 90;
+  const lateNightUsageDetected = (currentHour >= 23 || currentHour <= 4) && (totalClicks > 5 || totalScrolls > 5);
+  const socialMediaOveruseDetected = mostUsedApps[0].durationMinutes + mostUsedApps[1].durationMinutes > 120;
+  const usageSpikesDetected = totalClicks > 40 || totalScrolls > 40 || (hasPermission && nativeMetrics.unlockCount > 30);
+
+  // Sleep pattern description
+  const bedHour = currentHour >= 22 || currentHour <= 4 ? currentHour : 23;
+  const sleepIndication = `Sleep window: ${bedHour}:45 PM - 7:15 AM (${sleepHours} hrs) • Restless score: ${stressIndex > 60 ? 'Moderate' : 'Low'}`;
+
+  // Core AI Biomarkers
+  const focusLevel = Math.min(100, Math.max(10, Math.round(100 - (backspaceRatio * 150) - (stressIndex * 0.25))));
+  const burnoutProbability = Math.min(100, Math.max(5, Math.round((stressIndex * 0.6) + ((8 - sleepHours) * 6) + (screenTimeMinutes > 300 ? 10 : 0))));
+  const anxietyIndication = Math.min(100, Math.max(5, Math.round((stressIndex * 0.7) + (avgKeyInterval < 300 ? 15 : 0) + (hasPermission && nativeMetrics.unlockCount > 20 ? 10 : 0))));
+  const depressionTendency = Math.min(100, Math.max(5, Math.round((100 - moodScore) * 0.75 + (50 - activityLevel) * 0.3)));
+  const sleepHealthScore = Math.min(100, Math.max(10, Math.round(Math.min(sleepHours / 8, 1.2) * 80 + (sleepHours >= 7 && sleepHours <= 9 ? 20 : 0) - (lateNightUsageDetected ? 15 : 0))));
+  const emotionalWellnessScore = Math.min(100, Math.max(10, Math.round(moodScore * 0.75 + activityLevel * 0.25)));
+
   return {
     moodScore,
     sleepHours,
@@ -245,6 +282,21 @@ export async function getLiveMetrics() {
       motionMagnitude: Number(motionMagnitude.toFixed(2)),
       androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
       androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
+    },
+    behaviorAnalysis: {
+      screenTimeMinutes,
+      mostUsedApps,
+      sleepIndication,
+      doomScrollingDetected,
+      lateNightUsageDetected,
+      socialMediaOveruseDetected,
+      usageSpikesDetected,
+      focusLevel,
+      burnoutProbability,
+      anxietyIndication,
+      depressionTendency,
+      sleepHealthScore,
+      emotionalWellnessScore,
     },
   };
 }

@@ -2,6 +2,9 @@
 
 Mobile wellness app built from the Google Stitch **MindTrace AI Wellness System** designs.
 
+> [!NOTE]
+> For a detailed, comprehensive system and architectural walkthrough of the codebase, data flow, telemetry calculations, and AI logic, check out the [MindTrace System Guide](file:///c:/Users/HP/.cursor/MCPSTICH/MINDTRACE_GUIDE.md).
+
 ## Features
 
 - Splash screen with auth routing

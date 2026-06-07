@@ -20,7 +20,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.PACKAGE_USAGE_STATS"
-      ]
+      ],
+      "package": "com.anonymous.mindtraceai"
     },
     "web": {
       "bundler": "metro",

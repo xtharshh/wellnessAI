@@ -5,6 +5,7 @@ import {
   dismissRecommendation,
   generateRecommendations,
   getRecommendations,
+  getLifestyleRecommendations,
 } from '@/src/services/recommendations';
 import { useAuthStore } from '@/src/stores/authStore';
 
@@ -23,12 +24,24 @@ export function useRecommendations() {
     enabled: !!user,
   });
 
+  const lifestyleQuery = useQuery({
+    queryKey: ['lifestyle-recommendations', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('Not authenticated');
+      return getLifestyleRecommendations(user.id);
+    },
+    enabled: !!user,
+  });
+
   const regenerate = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
       return generateRecommendations(user.id, true);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recommendations', user?.id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recommendations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['lifestyle-recommendations', user?.id] });
+    },
   });
 
   const dismiss = useMutation({
@@ -47,5 +60,5 @@ export function useRecommendations() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recommendations', user?.id] }),
   });
 
-  return { ...query, regenerate, dismiss, complete };
+  return { ...query, lifestyleRecs: lifestyleQuery.data, isLifestyleLoading: lifestyleQuery.isLoading, regenerate, dismiss, complete };
 }

@@ -78,6 +78,12 @@ export default function LoginScreen() {
         placeholder="Enter your password"
       />
 
+      <View style={styles.forgotPasswordContainer}>
+        <Link href="/(auth)/forgot-password" style={styles.forgotPasswordLink}>
+          Forgot Password?
+        </Link>
+      </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <PrimaryButton label="Sign In" onPress={handleLogin} loading={loading} />
@@ -106,6 +112,16 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.bodyMd,
     color: colors.onSurfaceVariant,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 16,
+    marginTop: -8,
+  },
+  forgotPasswordLink: {
+    ...typography.bodyMd,
+    color: colors.onSurfaceVariant,
+    fontSize: 13,
   },
   error: {
     ...typography.bodyMd,

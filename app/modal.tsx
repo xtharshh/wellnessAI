@@ -90,6 +90,61 @@ export default function ModalScreen() {
     };
   }, []);
 
+  const isPrivacy = !metric || metric === 'privacy' || metric === 'default';
+
+  if (isPrivacy) {
+    return (
+      <ScreenContainer contentStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={[styles.icon, { color: colors.primaryAccent }]}>🔒</Text>
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.onSurface }]}>Privacy & Terms</Text>
+            <Text style={[styles.caption, { color: colors.secondary }]}>Legal Agreements</Text>
+          </View>
+        </View>
+
+        <Text style={[styles.description, { color: colors.onSurfaceVariant, marginBottom: spacing.md }]}>
+          Please read our Terms of Service and Privacy Policy carefully. We care deeply about your privacy and keeping your personal wellbeing data safe.
+        </Text>
+
+        <GlassCard accent="primary" style={styles.cardSpacing}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>1. Privacy & Data Policy</Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant }]}>
+            MindTrace AI uses passive, on-device telemetry (such as typing speed rhythms and accelerometer force magnitudes) to analyze your stress levels, sleep cycles, and digital wellbeing.
+          </Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
+            • <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>Local Processing:</Text> Raw inputs (such as specific keys pressed, typed texts, or raw browser inputs) are analyzed locally and never saved or transmitted.
+          </Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
+            • <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>Cloud Syncing:</Text> Only the calculated high-level metrics (e.g. sleep hours, mood scores, activity indices) are synced to your private backend database on Supabase.
+          </Text>
+        </GlassCard>
+
+        <GlassCard style={styles.cardSpacing}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>2. Terms & Conditions</Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant }]}>
+            By creating an account on MindTrace AI, you grant the app permission to access device stats and usage information when prompted.
+          </Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
+            You agree not to exploit, modify, or reverse-engineer the underlying analysis modules or metrics algorithms. You retain full ownership of your data and can request deletion at any time.
+          </Text>
+        </GlassCard>
+
+        <GlassCard accent="secondary" style={styles.cardSpacing}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>3. Medical & Health Disclaimer</Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant }]}>
+            MindTrace AI is a consumer-focused passive lifestyle dashboard. It is <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>NOT</Text> a medical diagnostic tool, psychiatric aid, or therapy replacement.
+          </Text>
+          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
+            Always consult a licensed medical professional or doctor if you are experiencing severe mental health distress or crisis.
+          </Text>
+        </GlassCard>
+
+        <View style={styles.footerSpacing} />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer contentStyle={styles.container}>
       <View style={styles.header}>
@@ -245,5 +300,16 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 22,
     fontWeight: 'bold',
+  },
+  bodyText: {
+    ...typography.bodyMd,
+    lineHeight: 20,
+  },
+  cardSpacing: {
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+  },
+  footerSpacing: {
+    height: 40,
   },
 });

@@ -157,27 +157,29 @@ export function GlowLineChart({
         </SvgText>
       ) : null}
 
-      {/* Hover/Touch target circles */}
-      {pts.map((pt) => (
-        <Circle
-          key={pt.index}
-          cx={pt.x}
-          cy={pt.y}
-          r={22}
-          fill="transparent"
-          {...(Platform.OS === 'web'
-            ? ({
-                onMouseEnter: () => setHoveredIndex(pt.index),
-                onMouseLeave: () => setHoveredIndex(null),
-                onPointerDown: () => setHoveredIndex(pt.index),
-                onPointerUp: () => setHoveredIndex(null),
-              } as any)
-            : ({
-                onPressIn: () => setHoveredIndex(pt.index),
-                onPressOut: () => setHoveredIndex(null),
-              } as any))}
-        />
-      ))}
+      {pts.map((pt) => {
+        const isWeb = Platform.OS === 'web' || typeof window !== 'undefined';
+        return (
+          <Circle
+            key={pt.index}
+            cx={pt.x}
+            cy={pt.y}
+            r={22}
+            fill="transparent"
+            {...(isWeb
+              ? ({
+                  onMouseEnter: () => setHoveredIndex(pt.index),
+                  onMouseLeave: () => setHoveredIndex(null),
+                  onPointerDown: () => setHoveredIndex(pt.index),
+                  onPointerUp: () => setHoveredIndex(null),
+                } as any)
+              : ({
+                  onPressIn: () => setHoveredIndex(pt.index),
+                  onPressOut: () => setHoveredIndex(null),
+                } as any))}
+          />
+        );
+      })}
     </Svg>
   );
 }
