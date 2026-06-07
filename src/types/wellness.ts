@@ -46,6 +46,17 @@ export interface UserProfile {
   privacyConsentAt: string | null;
   onboardingComplete: boolean;
   createdAt: string;
+  dob?: string;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  bodyFat?: number;
+  bloodType?: string;
+  restingHr?: number;
+  activityLevel?: string;
+  dailyStepsGoal?: number;
+  sleepDurationGoal?: number;
+  waterIntakeGoal?: number;
 }
 
 export interface UserSettings {

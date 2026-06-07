@@ -361,7 +361,7 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
   const stress = summary.stressIndex;
   const mood = summary.moodScore;
 
-  const recs: LifestyleItem[] = [];
+  let recs: LifestyleItem[] = [];
 
   // 1. Books
   if (stress > 55) {
@@ -526,5 +526,69 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
     linkUrl: 'https://www.psychologytoday.com/us/blog/the-athletes-way/201905/vagus-nerve-stimulation-without-implants'
   });
 
+  // Fetch and merge saved lifestyle items
+  try {
+    const savedItems = await getSavedLifestyleItems(userId);
+    const existingTitles = new Set(recs.map((r) => r.title.toLowerCase().trim()));
+    const newSavedItems = savedItems.filter((item) => !existingTitles.has(item.title.toLowerCase().trim()));
+    recs = [...newSavedItems, ...recs];
+  } catch (err) {
+    console.error('Failed to fetch saved lifestyle items:', err);
+  }
+
   return recs;
+}
+
+function mapDbLifestyleRowToItem(row: any): LifestyleItem {
+  return {
+    id: row.id,
+    title: row.title,
+    creator: row.creator,
+    category: row.category,
+    description: row.description,
+    reason: row.reason,
+    imageUrl: row.image_url,
+    linkUrl: row.link_url,
+  };
+}
+
+export async function getSavedLifestyleItems(userId: string): Promise<LifestyleItem[]> {
+  const { data, error } = await supabase
+    .from('lifestyle_items')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch saved lifestyle items:', error);
+    return [];
+  }
+
+  return (data || []).map(mapDbLifestyleRowToItem);
+}
+
+export async function saveAISuggestedLifestyleItems(userId: string, items: LifestyleItem[]): Promise<void> {
+  const existing = await getSavedLifestyleItems(userId);
+  const existingKey = new Set(existing.map((e) => `${e.title.toLowerCase().trim()}|${e.category}`));
+
+  const newItems = items.filter((item) => !existingKey.has(`${item.title.toLowerCase().trim()}|${item.category}`));
+
+  if (newItems.length === 0) return;
+
+  const dbRows = newItems.map((item) => ({
+    user_id: userId,
+    title: item.title,
+    creator: item.creator,
+    category: item.category,
+    description: item.description,
+    reason: item.reason,
+    image_url: item.imageUrl,
+    link_url: item.linkUrl,
+    custom: true,
+  }));
+
+  const { error } = await supabase.from('lifestyle_items').insert(dbRows);
+  if (error) {
+    console.error('Failed to save AI-suggested lifestyle items:', error);
+  }
 }

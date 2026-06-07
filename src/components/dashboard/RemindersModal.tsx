@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -15,18 +16,12 @@ import { useTheme } from '@/src/hooks/useTheme';
 import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
 import { radius, spacing } from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
+import { NotificationService, STORAGE_KEYS } from '@/src/services/notificationService';
 
 interface RemindersModalProps {
   visible: boolean;
   onClose: () => void;
 }
-
-const STORAGE_KEYS = {
-  BREAKS_ENABLED: 'mindtrace_breaks_enabled',
-  HYDRATION_ENABLED: 'mindtrace_hydration_enabled',
-  BREAK_INTERVAL: 'mindtrace_break_interval',
-  HYDRATION_TARGET: 'mindtrace_hydration_target',
-};
 
 export function RemindersModal({ visible, onClose }: RemindersModalProps) {
   const { colors } = useTheme();
@@ -59,19 +54,41 @@ export function RemindersModal({ visible, onClose }: RemindersModalProps) {
   }, [visible]);
 
   const handleSave = async () => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.BREAKS_ENABLED, String(breaksEnabled));
-      await AsyncStorage.setItem(STORAGE_KEYS.HYDRATION_ENABLED, String(hydrationEnabled));
-      await AsyncStorage.setItem(STORAGE_KEYS.BREAK_INTERVAL, String(breakInterval));
-      await AsyncStorage.setItem(STORAGE_KEYS.HYDRATION_TARGET, String(hydrationTarget));
+    const res = await NotificationService.saveAndSchedule(
+      breaksEnabled,
+      hydrationEnabled,
+      breakInterval,
+      hydrationTarget
+    );
 
+    // Close the modal immediately so the user doesn't see it hanging
+    onClose();
+
+    if (Platform.OS === 'web') {
+      // Delay alert slightly on web to let the modal transition close smoothly
+      setTimeout(() => {
+        window.alert(res.text);
+      }, 100);
+    } else {
       Alert.alert(
-        'Settings Saved',
-        'Your digital detox break and hydration reminders have been configured.',
-        [{ text: 'OK', onPress: onClose }]
+        res.success ? 'Settings Saved' : 'Error',
+        res.text
       );
-    } catch (e) {
-      Alert.alert('Error', 'Failed to save settings.');
+    }
+  };
+
+  const handleSendTest = async () => {
+    const res = await NotificationService.sendTestNotification();
+    if (res.success) {
+      if (Platform.OS === 'web') {
+        window.alert(res.text);
+      }
+    } else {
+      if (Platform.OS === 'web') {
+        window.alert(res.text);
+      } else {
+        Alert.alert('Notification Error', res.text);
+      }
     }
   };
 
@@ -175,8 +192,19 @@ export function RemindersModal({ visible, onClose }: RemindersModalProps) {
             </View>
 
             {/* Save Button */}
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginTop: 12, gap: 10 }}>
               <PrimaryButton label="Save Reminder Settings" onPress={handleSave} />
+              
+              <Pressable
+                onPress={handleSendTest}
+                style={({ pressed }) => [
+                  styles.testBtn,
+                  { borderColor: colors.outline, backgroundColor: pressed ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }
+                ]}
+              >
+                <Feather name="bell" size={14} color={colors.onSurface} style={{ marginRight: 6 }} />
+                <Text style={[styles.testBtnText, { color: colors.onSurface }]}>Send Test Notification</Text>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -269,6 +297,19 @@ const styles = StyleSheet.create({
   },
   optText: {
     fontSize: 12,
+    fontWeight: 'bold',
+  },
+  testBtn: {
+    flexDirection: 'row',
+    borderWidth: 1.2,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  testBtnText: {
+    fontSize: 12.5,
     fontWeight: 'bold',
   },
 });

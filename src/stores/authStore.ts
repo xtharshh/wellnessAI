@@ -21,6 +21,7 @@ interface AuthState {
   updateDisplayName: (displayName: string) => Promise<void>;
   updateAvatar: (avatarUrl: string | null) => Promise<void>;
   updateEmail: (email: string) => Promise<void>;
+  updateHealthProfile: (profileData: Partial<UserProfile>) => Promise<void>;
   setTheme: (theme: 'dark' | 'light') => Promise<void>;
   clearError: () => void;
 }
@@ -28,6 +29,25 @@ interface AuthState {
 async function bootstrapUserData(userId: string) {
   await ensureSnapshots(userId);
   await recommendationsService.generateRecommendations(userId);
+}
+
+// supabase-js can hang indefinitely on getSession()/getUser() in React Native
+// (lock/storage edge cases on cold start) — bound hydration so the splash
+// screen always resolves instead of blocking forever.
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Auth hydration timed out')), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -136,6 +156,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
     // We update the local state email, but note that Supabase might require confirmation
     set({ user: { ...user, email } });
+  },
+
+  updateHealthProfile: async (profileData) => {
+    const { user } = get();
+    if (!user) return;
+    const updated = await authService.updateUser(user.id, profileData);
+    set({ user: updated });
   },
 
   setTheme: async (theme) => {

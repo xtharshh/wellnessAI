@@ -16,9 +16,15 @@ export function GlassCard({ children, style, accent = 'primary' }: GlassCardProp
   const { colors, isDark } = useTheme();
 
   const accentBorders = {
-    primary: isDark ? 'rgba(162, 203, 253, 0.2)' : 'rgba(162, 203, 253, 0.35)',
-    secondary: isDark ? 'rgba(247, 190, 233, 0.2)' : 'rgba(247, 190, 233, 0.35)',
-    tertiary: isDark ? 'rgba(255, 220, 98, 0.2)' : 'rgba(255, 220, 98, 0.35)',
+    primary: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(124, 58, 237, 0.2)',
+    secondary: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(124, 58, 237, 0.2)',
+    tertiary: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(124, 58, 237, 0.2)',
+  };
+
+  const accentStrip = {
+    primary: colors.primaryAccent,
+    secondary: colors.secondaryAccent,
+    tertiary: colors.tertiaryAccent,
   };
 
   const content = (
@@ -26,12 +32,13 @@ export function GlassCard({ children, style, accent = 'primary' }: GlassCardProp
       {Platform.OS !== 'web' ? (
         <BlurView intensity={12} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
       ) : null}
+      <View style={[styles.accentStrip, { backgroundColor: accentStrip[accent] }]} />
       <View style={styles.inner}>{children}</View>
     </>
   );
 
   const cardShadow = {
-    shadowColor: isDark ? '#000000' : 'rgba(162, 203, 253, 0.4)',
+    shadowColor: isDark ? '#000000' : 'rgba(124, 58, 237, 0.3)',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: isDark ? 0.3 : 0.08,
     shadowRadius: 18,
@@ -39,7 +46,7 @@ export function GlassCard({ children, style, accent = 'primary' }: GlassCardProp
     ...(Platform.OS === 'web' && {
       boxShadow: isDark
         ? '0 6px 20px rgba(0, 0, 0, 0.4)'
-        : '0 6px 20px rgba(162, 203, 253, 0.12)',
+        : '0 6px 20px rgba(124, 58, 237, 0.12)',
     }),
   };
 
@@ -64,6 +71,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     overflow: 'hidden',
+  },
+  accentStrip: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
   },
   inner: {
     padding: spacing.md,

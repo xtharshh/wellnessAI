@@ -165,6 +165,18 @@ export async function setupPerfectPlanExercises(userId: string): Promise<void> {
       explanation: 'Relieves typing-related shoulder tightness and increases localized blood circulation to counteract sedentary intervals.',
       category: 'activity',
       custom: true
+    },
+    {
+      name: 'Cold Reset',
+      duration: '2 min',
+      steps: [
+        'Splash cold water on your face and wrists.',
+        'Hold a cold object (ice cube, cold glass) for 30 seconds.',
+        'Take 5 slow breaths while feeling the cold sensation.'
+      ],
+      explanation: 'Cold exposure activates the vagus nerve and instantly reduces stress hormones, helping to reset your mental state during overwhelming moments.',
+      category: 'activity',
+      custom: true
     }
   ];
 

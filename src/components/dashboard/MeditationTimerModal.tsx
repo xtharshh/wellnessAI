@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Alert,
   Modal,
@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 
 import { useTheme } from '@/src/hooks/useTheme';
 import { radius, spacing } from '@/src/theme/spacing';
@@ -28,6 +29,13 @@ const MEDITATION_GUIDES = [
   "Be fully present in this quiet moment."
 ];
 
+const AUDIO_URLS: Record<string, string> = {
+  Rainfall: 'https://www.soundjay.com/nature/sounds/rain-07.mp3',
+  'Forest Birds': 'https://www.soundjay.com/nature/sounds/countryside-01.mp3',
+  'Ocean Waves': 'https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3',
+  'Deep Space': 'https://www.soundjay.com/misc/sounds/spaceship-hum-1.mp3',
+};
+
 export function MeditationTimerModal({ visible, onClose }: MeditationTimerModalProps) {
   const { colors, isDark } = useTheme();
   const [duration, setDuration] = useState(5); // mins
@@ -35,6 +43,61 @@ export function MeditationTimerModal({ visible, onClose }: MeditationTimerModalP
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [guideIndex, setGuideIndex] = useState(0);
+
+  const ambientSoundRef = useRef<Audio.Sound | null>(null);
+
+  // Audio setup when session starts/stops
+  useEffect(() => {
+    async function manageAudio() {
+      if (isActive && sound !== 'None' && AUDIO_URLS[sound]) {
+        try {
+          if (ambientSoundRef.current) {
+            await ambientSoundRef.current.stopAsync();
+            await ambientSoundRef.current.unloadAsync();
+            ambientSoundRef.current = null;
+          }
+          await Audio.setAudioModeAsync({
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: true,
+          });
+          const { sound: newSound } = await Audio.Sound.createAsync(
+            { uri: AUDIO_URLS[sound] },
+            { shouldPlay: true, isLooping: true, volume: 0.8 }
+          );
+          ambientSoundRef.current = newSound;
+        } catch (e) {
+          console.warn('Failed to load/play ambient audio:', e);
+        }
+      } else {
+        if (ambientSoundRef.current) {
+          try {
+            await ambientSoundRef.current.pauseAsync();
+          } catch (e) {
+            console.warn(e);
+          }
+        }
+      }
+    }
+    manageAudio();
+  }, [isActive, sound]);
+
+  // Clean up sound on hidden visibility
+  useEffect(() => {
+    if (!visible && ambientSoundRef.current) {
+      ambientSoundRef.current.stopAsync().catch(() => {});
+      ambientSoundRef.current.unloadAsync().catch(() => {});
+      ambientSoundRef.current = null;
+    }
+  }, [visible]);
+
+  // Clean up sound on unmount
+  useEffect(() => {
+    return () => {
+      if (ambientSoundRef.current) {
+        ambientSoundRef.current.unloadAsync().catch(() => {});
+      }
+    };
+  }, []);
 
   // Initialize timer
   useEffect(() => {

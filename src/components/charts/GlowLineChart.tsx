@@ -3,6 +3,12 @@ import { Platform } from 'react-native';
 import Svg, { Circle, Defs, FeGaussianBlur, Filter, G, Line, Polyline, Rect, Text as SvgText } from 'react-native-svg';
 
 import { useTheme } from '@/src/hooks/useTheme';
+import { fonts } from '@/src/theme/typography';
+
+interface WeekdayDay {
+  label: string;
+  isToday: boolean;
+}
 
 interface GlowLineChartProps {
   data: number[];
@@ -10,6 +16,8 @@ interface GlowLineChartProps {
   width?: number;
   height?: number;
   label?: string;
+  weekdaysList?: WeekdayDay[];
+  timeframe?: '7D' | '30D' | '90D';
 }
 
 export function GlowLineChart({
@@ -18,6 +26,8 @@ export function GlowLineChart({
   width = 320,
   height = 140,
   label,
+  weekdaysList,
+  timeframe = '7D',
 }: GlowLineChartProps) {
   const { colors, isDark } = useTheme();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -26,16 +36,21 @@ export function GlowLineChart({
 
   if (!data.length) return null;
 
-  const padding = 16;
-  const chartWidth = width - padding * 2;
-  const chartHeight = height - padding * 2;
+  // Use asymmetrical padding to leave space for weekday labels at the bottom
+  const paddingLeft = 20;
+  const paddingRight = 20;
+  const paddingTop = 15;
+  const paddingBottom = weekdaysList ? 30 : 15;
+
+  const chartWidth = width - paddingLeft - paddingRight;
+  const chartHeight = height - paddingTop - paddingBottom;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
 
   const pts = data.map((value, index) => {
-    const x = padding + (index / Math.max(data.length - 1, 1)) * chartWidth;
-    const y = padding + chartHeight - ((value - min) / range) * chartHeight;
+    const x = paddingLeft + (index / Math.max(data.length - 1, 1)) * chartWidth;
+    const y = paddingTop + chartHeight - ((value - min) / range) * chartHeight;
     return { x, y, value, index };
   });
 
@@ -70,10 +85,10 @@ export function GlowLineChart({
       {[0.25, 0.5, 0.75].map((ratio) => (
         <Line
           key={ratio}
-          x1={padding}
-          y1={padding + chartHeight * ratio}
-          x2={width - padding}
-          y2={padding + chartHeight * ratio}
+          x1={paddingLeft}
+          y1={paddingTop + chartHeight * ratio}
+          x2={width - paddingRight}
+          y2={paddingTop + chartHeight * ratio}
           stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
           strokeWidth={1}
         />
@@ -100,9 +115,9 @@ export function GlowLineChart({
         <>
           <Line
             x1={activePt.x}
-            y1={padding}
+            y1={paddingTop}
             x2={activePt.x}
-            y2={padding + chartHeight}
+            y2={paddingTop + chartHeight}
             stroke={activeColor}
             strokeWidth={1.5}
             strokeDasharray="3 3"
@@ -148,7 +163,7 @@ export function GlowLineChart({
 
       {label ? (
         <SvgText
-          x={padding}
+          x={paddingLeft}
           y={12}
           fill={colors.onSurfaceVariant}
           fontSize="11"
@@ -156,6 +171,31 @@ export function GlowLineChart({
           {label}
         </SvgText>
       ) : null}
+
+      {/* Weekday indicator labels below graph, aligned with points */}
+      {weekdaysList &&
+        pts.map((pt) => {
+          const day = weekdaysList[pt.index];
+          if (!day) return null;
+
+          const showLabel = timeframe === '7D' ? true : pt.index % 3 === 0;
+          if (!showLabel) return null;
+
+          return (
+            <SvgText
+              key={`label-${pt.index}`}
+              x={pt.x}
+              y={height - 8}
+              fill={day.isToday ? activeColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)')}
+              fontSize="10"
+              fontWeight={day.isToday ? 'bold' : 'normal'}
+              textAnchor="middle"
+              fontFamily={day.isToday ? fonts.bold : fonts.regular}
+            >
+              {day.label}
+            </SvgText>
+          );
+        })}
 
       {pts.map((pt) => {
         const isWeb = Platform.OS === 'web' || typeof window !== 'undefined';

@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, Vibration } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView, Vibration, Platform, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/src/components/ui/GlassCard';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
@@ -131,6 +134,13 @@ function getCircleScale(phase: PhaseType | 'idle', phaseProgress: number): numbe
   return 0.62;
 }
 
+/** Format seconds as mm:ss */
+function formatElapsed(totalSecs: number): string {
+  const m = Math.floor(totalSecs / 60);
+  const s = totalSecs % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
 /** Compute each phase's SVG arc dasharray / dashoffset values */
 function buildSegments(phases: Phase[]) {
   const total = phases.reduce((s, p) => s + p.duration, 0);
@@ -149,17 +159,99 @@ function buildSegments(phases: Phase[]) {
 export default function BreathScreen() {
   const { colors, isDark } = useTheme();
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
+  const searchParams = useLocalSearchParams<{ start?: string; technique?: string; referrer?: string; sessionDuration?: string; name?: string }>();
 
-  const [techniqueId, setTechniqueId] = useState('relax478');
-  const [isRunning, setIsRunning]           = useState(false);
+  const [techniqueId, setTechniqueId] = useState(() => {
+    if (searchParams.technique && TECHNIQUES[searchParams.technique]) {
+      return searchParams.technique;
+    }
+    return 'relax478';
+  });
+  const [referrer, setReferrer] = useState<string | null>(searchParams.referrer || null);
+  const [isRunning, setIsRunning]           = useState(true);
+  const [totalSessionDuration, setTotalSessionDuration] = useState(() => {
+    if (searchParams.sessionDuration) {
+      const parsedSecs = parseInt(searchParams.sessionDuration, 10);
+      if (!isNaN(parsedSecs) && parsedSecs > 0) {
+        return parsedSecs;
+      }
+    }
+    return 180;
+  });
   const [progress, setProgress]             = useState(0);   // actual cycle progress 0–1
   const [knotDisplayProgress, setKnotDisplayProgress] = useState(0); // knot display (pauses at boundaries)
   const [activePhaseName, setActivePhaseName] = useState<PhaseType | 'idle'>('idle');
   const [phaseProgress, setPhaseProgress]     = useState(0);
   const [secondsLeft, setSecondsLeft]         = useState(0);
   const [cycle, setCycle]                     = useState(0);
+  const [elapsedSeconds, setElapsedSeconds]   = useState(0);
 
-  const startTimeRef        = useRef<number>(0);
+  const chimeSoundRef = useRef<Audio.Sound | null>(null);
+  const lastVibrationSecondRef = useRef<number>(-1);
+
+  // Audio setup
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+    }).catch(() => {});
+
+    const loadSound = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: 'https://www.soundjay.com/buttons/sounds/button-10.mp3' },
+          { shouldPlay: false }
+        );
+        chimeSoundRef.current = sound;
+      } catch (error) {
+        console.log('Failed to load chime sound:', error);
+      }
+    };
+    loadSound();
+
+    return () => {
+      if (chimeSoundRef.current) {
+        chimeSoundRef.current.unloadAsync().catch(() => {});
+      }
+    };
+  }, []);
+
+  const playChime = async () => {
+    try {
+      if (chimeSoundRef.current) {
+        await chimeSoundRef.current.stopAsync();
+        await chimeSoundRef.current.playAsync();
+      }
+    } catch (error) {
+      console.log('Error playing chime:', error);
+    }
+  };
+
+  // Trigger auto-start from navigation parameters
+  useEffect(() => {
+    if (searchParams.start === 'true' && searchParams.technique && TECHNIQUES[searchParams.technique]) {
+      setTechniqueId(searchParams.technique);
+      if (searchParams.sessionDuration) {
+        const parsedSecs = parseInt(searchParams.sessionDuration, 10);
+        if (!isNaN(parsedSecs) && parsedSecs > 0) {
+          setTotalSessionDuration(parsedSecs);
+        }
+      }
+      setTimeout(() => {
+        startSession();
+      }, 100);
+      router.setParams({ start: undefined, technique: undefined, sessionDuration: undefined });
+    }
+  }, [searchParams.start, searchParams.technique, searchParams.sessionDuration]);
+
+  useEffect(() => {
+    if (searchParams.referrer) {
+      setReferrer(searchParams.referrer);
+    }
+  }, [searchParams.referrer]);
+
+  const startTimeRef        = useRef<number>(Date.now());
   const lastPhaseRef        = useRef<string>('idle');
   const cycleCountRef       = useRef<number>(0);
   const knotPausedUntilRef  = useRef<number>(0); // timestamp until knot is frozen at boundary
@@ -167,9 +259,6 @@ export default function BreathScreen() {
   const technique     = TECHNIQUES[techniqueId];
   const totalDuration = technique.phases.reduce((s, p) => s + p.duration, 0);
   const segments      = buildSegments(technique.phases);
-
-  // Stop when technique changes mid-session
-  useEffect(() => { if (isRunning) stopSession(); }, [techniqueId]);
 
   // ── Interval driver: updates every 50 ms (~20 fps, no Animated needed) ──
   useEffect(() => {
@@ -192,10 +281,22 @@ export default function BreathScreen() {
         cumulative += p.duration;
       }
 
-      // Haptic + knot pause on phase transition
+      const currentElapsed = Math.floor(elapsed);
+      setElapsedSeconds(currentElapsed);
+
+      // Metronome tick every second (subtle haptic)
+      if (currentElapsed !== lastVibrationSecondRef.current) {
+        lastVibrationSecondRef.current = currentElapsed;
+        if (activePhase.phase === lastPhaseRef.current) {
+          try { Haptics.selectionAsync(); } catch {}
+        }
+      }
+
+      // Haptic + sound + knot pause on phase transition
       if (activePhase.phase !== lastPhaseRef.current) {
         lastPhaseRef.current = activePhase.phase;
-        try { Vibration.vibrate(100); } catch {}
+        try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+        playChime();
         knotPausedUntilRef.current = Date.now() + 380; // freeze knot at boundary for 380 ms
       }
 
@@ -214,32 +315,41 @@ export default function BreathScreen() {
         cycleCountRef.current = newCycle;
         setCycle(newCycle);
       }
+
+      // Check if session has run for target duration
+      if (currentElapsed >= totalSessionDuration) {
+        clearInterval(id);
+        try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); } catch {}
+        Alert.alert('Session Complete!', 'Well done completing your breathing session.', [
+          {
+            text: 'OK',
+            onPress: () => stopSession()
+          }
+        ]);
+      }
     }, 50);
 
     return () => clearInterval(id);
-  }, [isRunning, techniqueId]);
+  }, [isRunning, techniqueId, totalSessionDuration]);
 
   const startSession = () => {
     startTimeRef.current  = Date.now();
     lastPhaseRef.current  = 'idle';
+    lastVibrationSecondRef.current = -1;
     cycleCountRef.current = 0;
     setCycle(0);
     setPhaseProgress(0);
     setActivePhaseName('idle');
+    setElapsedSeconds(0);
     setIsRunning(true);
   };
 
   const stopSession = () => {
-    setIsRunning(false);
-    setProgress(0);
-    setKnotDisplayProgress(0);
-    setActivePhaseName('idle');
-    setPhaseProgress(0);
-    setSecondsLeft(0);
-    setCycle(0);
-    cycleCountRef.current      = 0;
-    lastPhaseRef.current       = 'idle';
-    knotPausedUntilRef.current = 0;
+    if (referrer) {
+      router.replace(referrer as any);
+    } else {
+      router.replace('/(tabs)/exercises');
+    }
   };
 
   const activePhaseData =
@@ -254,120 +364,78 @@ export default function BreathScreen() {
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'MT';
 
+  // Styles/Colors helpers
+  const displayName = searchParams.name || technique.name;
+
+  // FULLSCREEN DISTRACTION-FREE ACTIVE SESSION LAYOUT
   return (
-    <ScreenContainer contentStyle={styles.container}>
-
-      {/* ── Header Banner ── */}
-      <LinearGradient
-        colors={isDark ? ['#1a1030', '#0a0b10'] : ['#a2cbfd', '#f7bee9']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.headerBanner, { borderBottomColor: colors.outline }]}>
-        <View style={styles.profileRow}>
-          <View style={styles.avatarCol}>
-            <View style={[styles.avatarCircle, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-              <Text style={[styles.avatarText, { color: isDark ? colors.primary : '#0f172a' }]}>{initials}</Text>
-            </View>
-            <View>
-              <Text style={[styles.eyebrow, { color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(15,23,42,0.55)' }]}>
-                Breathe & Rest
-              </Text>
-              <Text style={[styles.headerTitle, { color: isDark ? colors.onSurface : '#0f172a' }]}>
-                Breathwork Coach
-              </Text>
-            </View>
-          </View>
-          <View style={[styles.iconBadge, { backgroundColor: colors.surface }]}>
-            <Feather name="wind" size={18} color={isDark ? colors.primary : '#3b82f6'} />
-          </View>
+    <View style={[styles.fullscreenContainer, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.sessionHeader}>
+        <View style={styles.sessionHeaderLeft}>
+          <Pressable
+            onPress={stopSession}
+            style={[
+              styles.backBtn,
+              {
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : colors.outline,
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(124, 58, 237, 0.05)',
+              }
+            ]}
+          >
+            <Feather name="chevron-left" size={20} color={isDark ? '#ffffff' : colors.primary} />
+          </Pressable>
+          <Text style={[styles.sessionHeaderTitle, { color: colors.onSurface }]}>{displayName}</Text>
         </View>
-      </LinearGradient>
-
-      {/* ── Technique Pill Selector ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.pillScroll}
-        contentContainerStyle={styles.pillRow}>
-        {TECHNIQUE_ORDER.map((id) => {
-          const t = TECHNIQUES[id];
-          const active = id === techniqueId;
-          return (
-            <Pressable
-              key={id}
-              onPress={() => setTechniqueId(id)}
-              style={[
-                styles.pill,
-                {
-                  backgroundColor: active ? t.tagColor : colors.surface,
-                  borderColor: active ? t.tagColor : colors.outline,
-                },
-              ]}>
-              <Feather name={t.icon} size={12} color={active ? '#0f172a' : colors.onSurfaceVariant} style={{ marginRight: 5 }} />
-              <Text style={[styles.pillLabel, { color: active ? '#0f172a' : colors.onSurfaceVariant }]}>
-                {t.name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      {/* ── "Best for" Tag ── */}
-      <View style={[styles.tagBadge, { backgroundColor: technique.tagColor + '22' }]}>
-        <Text style={[styles.tagText, { color: technique.tagColor === '#ffdc62' ? '#a16207' : technique.tagColor }]}>
-          Best for: {technique.bestFor}
-        </Text>
-      </View>
-
-      {/* ── SVG Donut Ring + Knot (no Animated.createAnimatedComponent — web-safe) ── */}
-      <View style={styles.ringArea}>
-        {/* SVG layer: track + colored segments + circular knot */}
-        <Svg
-          width={RING}
-          height={RING}
-          style={StyleSheet.absoluteFill}>
-
-          {/* Background track */}
-          <Circle
-            cx={RING / 2} cy={RING / 2} r={SVG_R}
-            stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}
-            strokeWidth={SVG_SW}
-            fill="transparent"
-          />
-
-          {/* Colored phase segments — strokeLinecap round gives natural end-caps */}
-          {segments.map((seg) => (
-            <Circle
-              key={seg.phase}
-              cx={RING / 2} cy={RING / 2} r={SVG_R}
-              stroke={seg.segmentColor}
-              strokeWidth={SVG_SW}
-              fill="transparent"
-              strokeDasharray={`${seg.dashLen} ${SVG_C}`}
-              strokeDashoffset={seg.dashOffset}
-              strokeLinecap="round"
-              transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
-            />
-          ))}
-
-          {/* Circle knot: a 2-unit dash with strokeLinecap="round" becomes a perfect circle
-              positioned at the current progress point on the ring */}
-          <Circle
-            cx={RING / 2} cy={RING / 2} r={SVG_R}
-            stroke={isRunning ? '#ffffff' : (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)')}
-            strokeWidth={SVG_SW + 6}
-            fill="transparent"
-            strokeDasharray={`2 ${SVG_C}`}
-            strokeDashoffset={-(knotDisplayProgress * SVG_C - 1)}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
-          />
-        </Svg>
-
-        {/* Inner breathing circle — View-based scale, no SVG needed */}
+        
         <View
           style={[
-            styles.breathCircle,
+            styles.sessionStopwatch,
+            {
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : colors.outline,
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(124, 58, 237, 0.05)',
+            }
+          ]}
+        >
+          <Feather name="clock" size={12} color={colors.onSurface} style={{ marginRight: 4 }} />
+          <Text style={[styles.stopwatchText, { color: colors.onSurface }]}>
+            {formatElapsed(Math.max(0, totalSessionDuration - elapsedSeconds))}
+          </Text>
+        </View>
+      </View>
+
+      {/* Concentric Breathing Circle Container */}
+      <View style={styles.sessionRingArea}>
+        {/* Outer Ring boundary */}
+        <View style={[styles.outerRingBoundary, { borderColor: isDark ? 'rgba(255, 255, 255, 0.04)' : colors.outline }]} />
+        
+        {/* Concentric Halo background */}
+        <View
+          style={[
+            styles.sessionHalo,
+            {
+              backgroundColor: circleColor,
+              opacity: 0.08,
+              transform: [{ scale: circleScale * 1.4 }],
+            },
+          ]}
+        />
+
+        <View
+          style={[
+            styles.sessionHalo,
+            {
+              backgroundColor: circleColor,
+              opacity: 0.15,
+              transform: [{ scale: circleScale * 1.2 }],
+            },
+          ]}
+        />
+
+        {/* Inner breathing circle */}
+        <View
+          style={[
+            styles.sessionBreathCircle,
             {
               backgroundColor: circleColor,
               transform: [{ scale: circleScale }],
@@ -375,86 +443,72 @@ export default function BreathScreen() {
           ]}
         />
 
-        {/* Glow halo behind inner circle */}
-        <View
+        {/* Inside Circle Texts */}
+        <View style={styles.sessionTextOverlay} pointerEvents="none">
+          <Text style={[styles.sessionPhaseLabel, { color: activePhaseData?.accentColor ?? colors.primary }]}>
+            {activePhaseName.toUpperCase()}
+          </Text>
+          <Text style={[styles.sessionSecondsText, { color: colors.onSurface }]}>
+            {secondsLeft}
+          </Text>
+          <Text style={[styles.sessionSecondsSub, { color: colors.onSurfaceVariant }]}>
+            seconds
+          </Text>
+        </View>
+      </View>
+
+      {/* Bottom indicators and controls */}
+      <View style={styles.sessionBottomControls}>
+        {/* Phase Pill Indicators */}
+        <View style={styles.sessionPillsContainer}>
+          {technique.phases.map((p, idx) => {
+            const isPhaseActive = activePhaseName === p.phase;
+            return (
+              <View
+                key={idx}
+                style={[
+                  styles.sessionPill,
+                  {
+                    backgroundColor: isPhaseActive ? colors.primary : (isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(124, 58, 237, 0.05)'),
+                    borderColor: isPhaseActive ? colors.primary : (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(124, 58, 237, 0.1)'),
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sessionPillText,
+                    {
+                      color: isPhaseActive
+                        ? '#ffffff'
+                        : (isDark ? 'rgba(255, 255, 255, 0.5)' : colors.onSurfaceVariant),
+                    }
+                  ]}
+                >
+                  {p.label}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={[styles.sessionRoundText, { color: colors.onSurfaceVariant }]}>
+          Round {cycle + 1} of 4 • Stay relaxed
+        </Text>
+
+        <Pressable
+          onPress={stopSession}
           style={[
-            styles.halo,
+            styles.sessionEndButton,
             {
-              backgroundColor: circleColor,
-              opacity: isRunning ? 0.18 : 0.06,
-              transform: [{ scale: circleScale * 1.3 }],
-            },
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : colors.outline,
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(124, 58, 237, 0.08)',
+            }
           ]}
-        />
-
-        {/* Text overlay */}
-        <View style={styles.ringTextOverlay} pointerEvents="none">
-          <Text style={[styles.phaseLabel, { color: activePhaseData?.accentColor ?? colors.primary }]}>
-            {(activePhaseName === 'idle' ? technique.idleLabel : (activePhaseData?.label ?? '')).toUpperCase()}
-          </Text>
-          <Text style={[styles.secondsText, { color: colors.onSurface }]}>
-            {isRunning ? `${secondsLeft}s` : '—'}
-          </Text>
-          <Text style={[styles.instructionText, { color: colors.onSurfaceVariant }]}>
-            {activePhaseName === 'idle' ? 'Tap start to begin' : (activePhaseData?.instruction ?? '')}
-          </Text>
-        </View>
+        >
+          <Text style={[styles.sessionEndButtonText, { color: isDark ? '#ffffff' : colors.primary }]}>✕ End Session</Text>
+        </Pressable>
       </View>
-
-
-
-      {/* ── Start / Stop ── */}
-      <Pressable
-        style={[styles.controlBtn, { backgroundColor: isRunning ? '#ef4444' : '#0f172a' }]}
-        onPress={isRunning ? stopSession : startSession}>
-        <Feather name={isRunning ? 'square' : 'play'} size={15} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.controlBtnText}>
-          {isRunning ? 'Stop Session' : 'Start Breathwork'}
-        </Text>
-      </Pressable>
-
-      {cycle > 0 && (
-        <Text style={[styles.cycleCounter, { color: colors.primary }]}>
-          {cycle} {cycle === 1 ? 'cycle' : 'cycles'} completed ✓
-        </Text>
-      )}
-
-      {/* ── Phase Breakdown Cards ── */}
-      <View style={styles.breakdownRow}>
-        {technique.phases.map((p) => (
-          <View
-            key={p.phase}
-            style={[
-              styles.breakdownCard,
-              {
-                backgroundColor: colors.surface,
-                borderColor: activePhaseName === p.phase ? p.segmentColor : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
-                borderWidth: activePhaseName === p.phase ? 2 : 1,
-              },
-            ]}>
-            <View style={[styles.cardIconCircle, { backgroundColor: p.iconBg }]}>
-              <Feather name={p.icon} size={13} color={p.accentColor} />
-            </View>
-            <Text style={[styles.cardLabel, { color: colors.onSurface }]}>{p.label}</Text>
-            <Text style={[styles.cardVal,   { color: p.accentColor  }]}>{p.duration}s</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* ── Benefit Card ── */}
-      <GlassCard accent="primary" style={styles.benefitCard}>
-        <View style={styles.benefitHeader}>
-          <View style={[styles.benefitIcon, { backgroundColor: technique.tagColor + '22' }]}>
-            <Feather name="info" size={13} color={technique.tagColor === '#ffdc62' ? '#a16207' : technique.tagColor} />
-          </View>
-          <Text style={[styles.benefitTitle, { color: colors.onSurface }]}>Physiology & Benefits</Text>
-        </View>
-        <Text style={[styles.benefitText, { color: colors.onSurfaceVariant }]}>
-          {technique.benefit}
-        </Text>
-      </GlassCard>
-
-    </ScreenContainer>
+    </View>
   );
 }
 
@@ -465,11 +519,139 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingTop: 0,
     paddingBottom: 120,
-
     gap: 0,
   },
+  fullscreenContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 54 : 32,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+  },
+  sessionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  sessionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionHeaderTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  sessionStopwatch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  stopwatchText: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+  },
+  sessionRingArea: {
+    width: 320,
+    height: 320,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  outerRingBoundary: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    borderWidth: 1.5,
+  },
+  sessionHalo: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+  },
+  sessionBreathCircle: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    opacity: 0.85,
+  },
+  sessionTextOverlay: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  sessionPhaseLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 2,
+    textAlign: 'center',
+  },
+  sessionSecondsText: {
+    fontSize: 72,
+    fontWeight: '800',
+    textAlign: 'center',
+    lineHeight: 78,
+  },
+  sessionSecondsSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  sessionBottomControls: {
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+  },
+  sessionPillsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sessionPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  sessionPillText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  sessionRoundText: {
+    fontSize: 12.5,
+    fontWeight: '500',
+  },
+  sessionEndButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionEndButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 
-  // Header
+  // Standard Header
   headerBanner: {
     paddingTop: 54,
     paddingBottom: 24,

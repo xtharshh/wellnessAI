@@ -24,7 +24,7 @@ import { useWellnessSummary } from '@/src/hooks/useWellnessSummary';
 import { refreshLatestSnapshot } from '@/src/services/wellness';
 import { useAuthStore } from '@/src/stores/authStore';
 import { radius, spacing } from '@/src/theme/spacing';
-import { typography } from '@/src/theme/typography';
+import { typography, fonts } from '@/src/theme/typography';
 
 // Native wellbeing module imports
 import { hasUsageStatsPermission, requestUsageStatsPermission } from '@/modules/android-wellbeing';
@@ -128,38 +128,72 @@ export default function DashboardScreen() {
       
       {/* Curved Wavy Top Header Banner */}
       <LinearGradient
-        colors={isDark ? ['#1a1030', '#0a0b10'] : ['#a2cbfd', '#f7bee9']}
+        colors={isDark ? ['#1a0e3a', '#110828', '#0a0514'] : ['#7c3aed', '#8b5cf6', '#a78bfa']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.headerBanner, { borderBottomColor: colors.outline }]}>
+        style={styles.headerBanner}>
         
+        {/* Decorative glowing circles */}
+        <View style={[styles.decorCircle, { width: 200, height: 200, borderRadius: 100, top: -70, left: -50, backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(255, 255, 255, 0.12)' }]} />
+        <View style={[styles.decorCircle, { width: 250, height: 250, borderRadius: 125, top: -30, right: -60, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(255, 255, 255, 0.08)' }]} />
+        <View style={[styles.decorCircle, { width: 130, height: 130, borderRadius: 65, bottom: -40, left: 60, backgroundColor: isDark ? 'rgba(96, 165, 250, 0.08)' : 'rgba(255, 255, 255, 0.1)' }]} />
+        <View style={[styles.decorCircle, { width: 80, height: 80, borderRadius: 40, top: 30, right: 50, backgroundColor: isDark ? 'rgba(196, 181, 253, 0.06)' : 'rgba(255, 255, 255, 0.15)' }]} />
+
         {/* Profile Row */}
         <View style={styles.profileRow}>
           <View style={styles.avatarCol}>
-            <View style={[styles.avatarCircle, { backgroundColor: colors.surface, borderColor: colors.outline, overflow: 'hidden' }]}>
+            <LinearGradient
+              colors={isDark ? ['#7c3aed', '#6d28d9'] : ['#ffffff', '#f3e8ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.avatarCircle, 
+                { 
+                  borderColor: isDark ? 'rgba(196, 181, 253, 0.3)' : 'rgba(255, 255, 255, 0.6)', 
+                  overflow: 'hidden' 
+                }
+              ]}>
               {user?.avatarUrl ? (
                 <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
               ) : (
-                <Text style={[styles.avatarText, { color: isDark ? colors.primary : '#0f172a' }]}>{initials}</Text>
+                <Text style={[styles.avatarText, { color: isDark ? '#ffffff' : '#7c3aed' }]}>{initials}</Text>
               )}
-            </View>
+            </LinearGradient>
             <View>
-              <Text style={[styles.greetingEyebrow, { color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)' }]}>{getTimeBasedGreeting()}</Text>
-              <Text style={[styles.greetingTitle, { color: isDark ? colors.onSurface : '#0f172a' }]}>Hi, {user?.displayName ?? 'Observer'}</Text>
+              <Text style={[styles.greetingEyebrow, { color: isDark ? 'rgba(196, 181, 253, 0.7)' : 'rgba(255, 255, 255, 0.75)' }]}>{getTimeBasedGreeting().toUpperCase()}</Text>
+              <Text style={[styles.greetingTitle, { color: '#ffffff' }]}>Hi, {user?.displayName ?? 'Observer'} 👋</Text>
             </View>
           </View>
-          <Pressable onPress={() => setRemindersVisible(true)} style={[styles.bellCircle, { backgroundColor: colors.surface }]}>
-            <Feather name="bell" size={18} color={isDark ? colors.onSurface : '#0f172a'} />
+          <Pressable 
+            onPress={() => setRemindersVisible(true)} 
+            style={[
+              styles.bellCircle, 
+              { 
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.2)',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.3)',
+                borderWidth: 1
+              }
+            ]}
+          >
+            <Feather name="bell" size={18} color="#ffffff" />
+            <View style={[styles.notifDot, { backgroundColor: '#f97316' }]} />
           </Pressable>
         </View>
 
         {/* Search Input */}
-        <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
-          <Feather name="search" size={16} color={colors.onSurfaceVariant} />
+        <View style={[
+          styles.searchContainer, 
+          { 
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.2)',
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.3)',
+            borderWidth: 1
+          }
+        ]}>
+          <Feather name="search" size={16} color={isDark ? 'rgba(196, 181, 253, 0.6)' : 'rgba(255, 255, 255, 0.7)'} />
           <TextInput
             placeholder="Passive cognitive telemetry active..."
-            placeholderTextColor={colors.onSurfaceVariant}
-            style={[styles.searchInput, { color: colors.onSurface }]}
+            placeholderTextColor={isDark ? 'rgba(196, 181, 253, 0.5)' : 'rgba(255, 255, 255, 0.65)'}
+            style={[styles.searchInput, { color: '#ffffff' }]}
             editable={false}
           />
         </View>
@@ -175,17 +209,17 @@ export default function DashboardScreen() {
             <MetricWidget
               title="Mood"
               value={String(summary?.moodScore ?? '—')}
-              unit="/100"
               trend={summary?.moodTrend}
+              series={series?.mood}
               accent="primary"
-              icon="smile"
+              icon="heart"
               onPress={() => router.push({ pathname: '/modal', params: { metric: 'mood' } })}
             />
             <MetricWidget
               title="Sleep"
               value={String(summary?.sleepHours ?? '—')}
-              unit="hrs"
               trend={summary?.sleepTrend}
+              series={series?.sleep}
               accent="secondary"
               icon="moon"
               onPress={() => router.push({ pathname: '/modal', params: { metric: 'sleep' } })}
@@ -195,34 +229,41 @@ export default function DashboardScreen() {
             <MetricWidget
               title="Activity"
               value={String(summary?.activityLevel ?? '—')}
-              unit="/100"
               trend={summary?.activityTrend}
+              series={series?.activity}
               accent="tertiary"
-              icon="zap"
+              icon="activity"
               onPress={() => router.push({ pathname: '/modal', params: { metric: 'activity' } })}
             />
             <MetricWidget
-              title="Stress Index"
+              title="Stress"
               value={String(summary?.stressIndex ?? '—')}
-              unit="/100"
               trend={summary?.stressTrend}
+              series={series?.stress}
               accent="primary"
-              icon="trending-down"
+              icon="zap"
               onPress={() => router.push({ pathname: '/modal', params: { metric: 'stress' } })}
             />
           </View>
         </View>
 
         {/* Daily Affirmation Card */}
-        <GlassCard accent="primary" style={styles.affirmationCard}>
+        <View style={[
+          styles.affirmationCard, 
+          { 
+            backgroundColor: isDark ? '#151126' : '#ffffff',
+            borderColor: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(124,58,237,0.12)',
+            borderWidth: 1.2
+          }
+        ]}>
           <View style={styles.affirmationHeader}>
-            <Feather name="heart" size={14} color={colors.primary} style={{ marginRight: 2 }} />
-            <Text style={[styles.affirmationTitle, { color: colors.onSurface }]}>Daily Affirmation</Text>
+            <Feather name="heart" size={14} color={isDark ? '#b881ff' : '#7c3aed'} />
+            <Text style={[styles.affirmationTitle, { color: isDark ? '#b881ff' : '#7c3aed' }]}>DAILY AFFIRMATION</Text>
           </View>
-          <Text style={[styles.affirmationText, { color: colors.onSurfaceVariant }]}>
+          <Text style={[styles.affirmationText, { color: colors.onSurface }]}>
             "{dailyAffirmation}"
           </Text>
-        </GlassCard>
+        </View>
 
         {/* 1. Android Digital Wellbeing Permission Request Banner */}
         {!hasPermission && Platform.OS === 'android' && (
@@ -251,22 +292,62 @@ export default function DashboardScreen() {
         <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Mindful Practice Actions</Text>
         <View style={styles.quickActionsGrid}>
           <View style={styles.quickRow}>
-            <Pressable onPress={() => setJournalVisible(true)} style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-              <Feather name="book-open" size={18} color="#ffb3d9" />
+            <Pressable 
+              onPress={() => setJournalVisible(true)} 
+              style={[
+                styles.actionCard, 
+                { 
+                  backgroundColor: isDark ? '#151126' : '#ffffff', 
+                  borderColor: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(124,58,237,0.12)',
+                  borderWidth: 1.2
+                }
+              ]}
+            >
+              <Feather name="book-open" size={18} color={isDark ? '#f472b6' : '#db2777'} />
               <Text style={[styles.actionLabel, { color: colors.onSurface }]}>Daily Journal</Text>
             </Pressable>
-            <Pressable onPress={() => setMeditationVisible(true)} style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-              <Feather name="anchor" size={18} color="#a2cbfd" />
-              <Text style={[styles.actionLabel, { color: colors.onSurface }]}>Meditation Timer</Text>
+            <Pressable 
+              onPress={() => setMeditationVisible(true)} 
+              style={[
+                styles.actionCard, 
+                { 
+                  backgroundColor: isDark ? '#151126' : '#ffffff', 
+                  borderColor: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(124,58,237,0.12)',
+                  borderWidth: 1.2
+                }
+              ]}
+            >
+              <Feather name="anchor" size={18} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.actionLabel, { color: colors.onSurface }]}>Meditation</Text>
             </Pressable>
           </View>
           <View style={styles.quickRow}>
-            <Pressable onPress={() => setWeeklyReportVisible(true)} style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-              <Feather name="bar-chart-2" size={18} color="#6ee7b7" />
+            <Pressable 
+              onPress={() => setWeeklyReportVisible(true)} 
+              style={[
+                styles.actionCard, 
+                { 
+                  backgroundColor: isDark ? '#151126' : '#ffffff', 
+                  borderColor: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(124,58,237,0.12)',
+                  borderWidth: 1.2
+                }
+              ]}
+            >
+              <Feather name="bar-chart-2" size={18} color={isDark ? '#3de2b5' : '#059669'} />
               <Text style={[styles.actionLabel, { color: colors.onSurface }]}>Weekly Report</Text>
             </Pressable>
-            <Pressable onPress={() => setRemindersVisible(true)} style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-              <Feather name="bell" size={18} color="#b59cff" />
+            <Pressable 
+              onPress={() => setRemindersVisible(true)} 
+              style={[
+                styles.actionCard, 
+                { 
+                  backgroundColor: isDark ? '#151126' : '#ffffff', 
+                  borderColor: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(124,58,237,0.12)',
+                  borderWidth: 1.2
+                }
+              ]}
+            >
+              <Feather name="bell" size={18} color={isDark ? '#b881ff' : '#7c3aed'} />
               <Text style={[styles.actionLabel, { color: colors.onSurface }]}>Reminders</Text>
             </Pressable>
           </View>
@@ -377,81 +458,71 @@ export default function DashboardScreen() {
         </View>
 
         {/* Overview Health Card */}
-        <GlassCard accent="primary" style={styles.overviewCard}>
-          <View style={styles.overviewLeft}>
-            <Text style={[styles.overviewLabel, { color: colors.onSurfaceVariant }]}>Overall Wellness Score</Text>
-            <Text style={[styles.overviewValue, { color: colors.onSurface }]}>
-              {isLoading ? '—' : `${summary?.wellnessScore ?? 0}%`}
-            </Text>
-            <Text style={[styles.overviewSub, { color: colors.onSurfaceVariant }]}>
-              {summary?.lastUpdated
-                ? `Updated: ${new Date(summary.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                : 'Awaiting data'}
-            </Text>
-          </View>
-
-          {/* Vertical Bar Chart (Flexbox representation of last 7 points) */}
-          <View style={styles.chartCol}>
-            <View style={styles.barChartRow}>
-              {healthSeries.map((val, idx) => {
-                // Determine heights dynamically, minimum 6px, max 54px
-                const barHeight = Math.max(6, Math.min(54, (val / 100) * 54));
-                const isLatest = idx === healthSeries.length - 1;
-                return (
-                  <View key={idx} style={styles.barCol}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        {
-                          height: barHeight,
-                          backgroundColor: isLatest 
-                            ? isDark ? '#a2cbfd' : '#5a9efa' 
-                            : isDark ? 'rgba(162,203,253,0.3)' : 'rgba(162,203,253,0.6)',
-                        },
-                      ]}
-                    />
-                    <Text style={[styles.barLabel, { color: colors.onSurfaceVariant }]}>
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'][idx]}
-                    </Text>
-                  </View>
-                );
-              })}
+        <Pressable onPress={() => router.push({ pathname: '/modal', params: { metric: 'wellness' } })} style={styles.overviewCardPressable}>
+          <GlassCard accent="primary" style={styles.overviewCard}>
+            <View style={styles.overviewLeft}>
+              <Text style={[styles.overviewLabel, { color: colors.onSurfaceVariant }]}>Overall Wellness Score</Text>
+              <Text style={[styles.overviewValue, { color: colors.onSurface }]}>
+                {isLoading ? '—' : `${summary?.wellnessScore ?? 0}%`}
+              </Text>
+              <Text style={[styles.overviewSub, { color: colors.onSurfaceVariant }]}>
+                {summary?.lastUpdated
+                  ? `Updated: ${new Date(summary.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                  : 'Awaiting data'}
+              </Text>
             </View>
-          </View>
-        </GlassCard>
 
-        {/* AI Habit Insights Section */}
-        <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>AI Habit Correlations</Text>
-        <Pressable onPress={() => router.push('/perfect-plan')}>
-          <GlassCard accent="secondary" style={styles.insightsCard}>
-            <View style={styles.insightHeaderRow}>
-              <View style={[styles.insightIconCircle, { backgroundColor: isDark ? 'rgba(247,190,233,0.18)' : 'rgba(247,190,233,0.35)' }]}>
-                <Feather name="trending-up" size={18} color={isDark ? '#f7bee9' : '#ec4899'} />
+            {/* Vertical Bar Chart (Flexbox representation of last 7 points) */}
+            <View style={styles.chartCol}>
+              <View style={styles.barChartRow}>
+                {healthSeries.map((val, idx) => {
+                  // Determine heights dynamically, minimum 6px, max 54px
+                  const barHeight = Math.max(6, Math.min(54, (val / 100) * 54));
+                  const isLatest = idx === healthSeries.length - 1;
+                  return (
+                    <View key={idx} style={styles.barCol}>
+                      <View
+                        style={[
+                          styles.barFill,
+                          {
+                            height: barHeight,
+                            backgroundColor: isLatest 
+                              ? isDark ? '#a2cbfd' : '#5a9efa' 
+                              : isDark ? 'rgba(162,203,253,0.3)' : 'rgba(162,203,253,0.6)',
+                          },
+                        ]}
+                      />
+                      <Text style={[styles.barLabel, { color: colors.onSurfaceVariant }]}>
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][idx]}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
-              <Text style={[styles.insightTitle, { color: colors.onSurface }]}>AI Perfect Plan Insights</Text>
-              <Feather name="chevron-right" size={18} color={colors.onSurfaceVariant} style={{ marginLeft: 'auto' }} />
             </View>
-            
-            <View style={styles.insightsBulletRow}>
-              <View style={[styles.bulletDot, { backgroundColor: isDark ? '#f7bee9' : '#ec4899' }]} />
-              <Text style={[styles.insightBulletText, { color: colors.onSurfaceVariant }]}>
-                We've noticed your typing errors drop by <Text style={{ fontWeight: '700', color: colors.onSurface }}>22%</Text> when you get more than 7.5 hours of sleep.
-              </Text>
+          </GlassCard>
+        </Pressable>
+
+        {/* AI Habit Correlations Section */}
+        <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>AI Habit Correlations</Text>
+        <Pressable onPress={() => router.push('/perfect-plan')} style={styles.correlationPressable}>
+          <GlassCard accent="secondary" style={styles.correlationCard}>
+            <View style={styles.correlationCardContent}>
+              <View style={[styles.correlationIconCircle, { backgroundColor: isDark ? 'rgba(61, 226, 181, 0.15)' : 'rgba(5, 150, 105, 0.08)' }]}>
+                <Feather name="trending-up" size={16} color={isDark ? '#3de2b5' : '#059669'} />
+              </View>
+
+              <View style={styles.correlationTextCol}>
+                <Text style={[styles.correlationTitle, { color: colors.onSurface }]}>AI Habit Correlations</Text>
+                <Text style={[styles.correlationSub, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                  Exercise → ↓22% stress · Sleep → ↑18% mood
+                </Text>
+              </View>
+
+              <View style={[styles.viewPlanBtn, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#e6fcf5' }]}>
+                <Text style={[styles.viewPlanBtnText, { color: isDark ? '#3de2b5' : '#059669' }]}>View Plan</Text>
+              </View>
             </View>
-            
-            <View style={styles.insightsBulletRow}>
-              <View style={[styles.bulletDot, { backgroundColor: isDark ? '#f7bee9' : '#ec4899' }]} />
-              <Text style={[styles.insightBulletText, { color: colors.onSurfaceVariant }]}>
-                Your stress spikes by <Text style={{ fontWeight: '700', color: colors.onSurface }}>18%</Text> on days when screen-on time exceeds 4.5 hours.
-              </Text>
-            </View>
-            
-            <Pressable 
-              style={[styles.configureBtn, { backgroundColor: isDark ? colors.surfaceContainerHigh : '#0f172a' }]}
-              onPress={() => router.push('/perfect-plan')}
-            >
-              <Text style={[styles.configureBtnText, { color: '#ffffff' }]}>View & Activate Perfect Plan</Text>
-            </Pressable>
           </GlassCard>
         </Pressable>
 
@@ -489,11 +560,17 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 36,
     gap: 20,
     borderBottomWidth: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  decorCircle: {
+    position: 'absolute',
   },
   profileRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    zIndex: 1,
   },
   avatarCol: {
     flexDirection: 'row',
@@ -506,31 +583,48 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatarText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   greetingEyebrow: {
     ...typography.labelCaps,
     textTransform: 'none',
+    letterSpacing: 1.8,
   },
   greetingTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
   },
   bellCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    position: 'relative',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 9,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.15)',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -539,11 +633,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 23,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    zIndex: 1,
   },
   searchInput: {
     flex: 1,
@@ -790,54 +880,46 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: typography.dataMono.fontFamily,
   },
-  insightsCard: {
-    padding: spacing.md,
-    gap: 12,
+  correlationPressable: {
+    width: '100%',
+    marginBottom: 16,
   },
-  insightHeaderRow: {
+  correlationCard: {
+    padding: 14,
+  },
+  correlationCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
   },
-  insightIconCircle: {
+  correlationIconCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
-  insightTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  insightsBulletRow: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
-    paddingLeft: 4,
-  },
-  bulletDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 6,
-  },
-  insightBulletText: {
-    ...typography.bodyMd,
-    fontSize: 13,
-    lineHeight: 18,
+  correlationTextCol: {
     flex: 1,
+    gap: 2,
+    marginRight: 8,
   },
-  configureBtn: {
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+  correlationTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
   },
-  configureBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+  correlationSub: {
+    fontSize: 11.5,
+  },
+  viewPlanBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  viewPlanBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
   },
   grid: {
     gap: 14,
@@ -873,5 +955,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 22,
     fontWeight: '500',
+  },
+  overviewCardPressable: {
+    width: '100%',
   },
 });

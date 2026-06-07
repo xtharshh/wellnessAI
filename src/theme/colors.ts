@@ -1,49 +1,49 @@
 export const darkColors = {
-  background: '#0c0d12',
-  backgroundDeep: '#050608',
-  surface: '#161922',
-  surfaceContainer: '#1f222e',
-  surfaceContainerHigh: '#2a2d3c',
-  primary: '#a2cbfd', // Soft Blue
-  primaryAccent: '#a2cbfd',
-  primaryContainer: 'rgba(162, 203, 253, 0.2)',
-  secondary: '#f7bee9', // Soft Pink
-  secondaryAccent: '#f7bee9',
-  tertiary: '#ffdc62', // Warm Yellow
-  tertiaryAccent: '#ffdc62',
-  onSurface: '#e2e2e8',
-  onSurfaceVariant: '#a29bb0',
-  outline: 'rgba(162, 203, 253, 0.2)',
-  error: '#ffb4ab',
-  riskLow: '#a7f3d0', // Soft Green
-  riskMedium: '#a2cbfd', // Soft Blue
-  riskHigh: '#f7bee9', // Soft Pink
-  glassBorder: 'rgba(162, 203, 253, 0.15)',
-  glassBackground: 'rgba(22, 25, 34, 0.7)',
+  background: '#0a0813', // Deep dark purple/black matching screenshots
+  backgroundDeep: '#050409',
+  surface: '#151126', // Premium card surface
+  surfaceContainer: '#1f1a36',
+  surfaceContainerHigh: '#282245',
+  primary: '#a855f7', // Vibrant Purple
+  primaryAccent: '#a855f7',
+  primaryContainer: 'rgba(168, 85, 247, 0.2)',
+  secondary: '#a855f7', // Purple (matched to primary)
+  secondaryAccent: '#a855f7',
+  tertiary: '#a855f7', // Purple
+  tertiaryAccent: '#a855f7',
+  onSurface: '#f5f5f7',
+  onSurfaceVariant: '#8f8f9e', // Muted label color matching screenshots
+  outline: 'rgba(168, 85, 247, 0.15)',
+  error: '#ef4444',
+  riskLow: '#10b981', // Green
+  riskMedium: '#a855f7', // Purple
+  riskHigh: '#ef4444', // Red
+  glassBorder: 'rgba(168, 85, 247, 0.15)',
+  glassBackground: 'rgba(21, 17, 38, 0.8)',
 };
 
 export const lightColors = {
-  background: '#f4f7fa', // Soft clinical blue-gray
-  backgroundDeep: '#e8edf3',
-  surface: '#ffffff',
-  surfaceContainer: '#eef2f7',
-  surfaceContainerHigh: '#e2e8f0',
-  primary: '#5a9efa', // Deepened Soft Blue for active buttons/text in light mode
-  primaryAccent: '#a2cbfd', // Soft Blue
-  primaryContainer: '#d0e6ff',
-  secondary: '#eb86d6', // Deepened Soft Pink
-  secondaryAccent: '#f7bee9', // Soft Pink
-  tertiary: '#e0b516', // Deepened Warm Yellow
-  tertiaryAccent: '#ffdc62', // Warm Yellow
-  onSurface: '#1e293b', // Slate black
-  onSurfaceVariant: '#64748b', // Slate gray
-  outline: 'rgba(162, 203, 253, 0.3)',
-  error: '#dc2626',
+  background: '#f4f2ff', // Soft lavender-gray matching screenshots
+  backgroundDeep: '#eae6ff',
+  surface: '#ffffff', // Clean white card surface
+  surfaceContainer: '#f5f0ff',
+  surfaceContainerHigh: '#ede5ff',
+  primary: '#7c3aed', // Deep Purple for light mode
+  primaryAccent: '#a855f7', // Vibrant Purple
+  primaryContainer: '#ede9fe',
+  secondary: '#7c3aed', // Purple
+  secondaryAccent: '#a855f7', // Purple
+  tertiary: '#7c3aed', // Purple
+  tertiaryAccent: '#a855f7', // Purple
+  onSurface: '#1a1a2e', // Dark slate
+  onSurfaceVariant: '#6b6b7f', // Medium gray
+  outline: 'rgba(124, 58, 237, 0.15)',
+  error: '#ef4444',
   riskLow: '#10b981',
-  riskMedium: '#0ea5e9',
-  riskHigh: '#f43f5e',
-  glassBorder: 'rgba(162, 203, 253, 0.2)',
-  glassBackground: 'rgba(255, 255, 255, 0.85)',
+  riskMedium: '#7c3aed',
+  riskHigh: '#ef4444',
+  glassBorder: 'rgba(124, 58, 237, 0.15)',
+  glassBackground: 'rgba(255, 255, 255, 0.9)',
 };
 
 export function getThemeColors(themeMode: 'dark' | 'light') {

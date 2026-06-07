@@ -64,8 +64,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="breath"
         options={{
-          title: 'Breathe',
-          tabBarIcon: ({ color }) => <TabIcon name="wind" color={color} />,
+          href: null,
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tabs.Screen
