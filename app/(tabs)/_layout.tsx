@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
+import { View } from 'react-native';
 
-import { useTheme } from '@/src/hooks/useTheme';
+import { useCalm } from '@/src/components/calm/kit';
 import { typography } from '@/src/theme/typography';
 
 function TabIcon({
@@ -16,7 +17,7 @@ function TabIcon({
 }
 
 export default function TabLayout() {
-  const { colors } = useTheme();
+  const { c } = useCalm();
 
   return (
     <Tabs
@@ -27,20 +28,22 @@ export default function TabLayout() {
           bottom: 16,
           left: 16,
           right: 16,
-          backgroundColor: colors.surface,
+          backgroundColor: c.surface,
+          borderColor: c.line,
+          borderWidth: 1,
           borderRadius: 28,
-          height: 68,
+          height: 70,
           paddingBottom: 10,
           paddingTop: 10,
-          borderTopWidth: 0,
-          shadowColor: '#000000',
+          borderTopWidth: 1,
+          shadowColor: c.shadow,
           shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 16,
+          shadowOpacity: 1,
+          shadowRadius: 18,
           elevation: 8,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.onSurfaceVariant,
+        tabBarActiveTintColor: c.ink,
+        tabBarInactiveTintColor: c.faint,
         tabBarLabelStyle: {
           fontFamily: typography.labelCaps.fontFamily,
           fontSize: 10,
@@ -51,35 +54,42 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon name="activity" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="counsellor"
         options={{
-          title: 'AI Chat',
-          tabBarIcon: ({ color }) => <TabIcon name="message-circle" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="breath"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="recommendations"
-        options={{
-          title: 'AI Recs',
-          tabBarIcon: ({ color }) => <TabIcon name="zap" color={color} />,
+          title: 'Counsellor',
+          tabBarIcon: ({ color }) => <TabIcon name="users" color={color} />,
         }}
       />
       <Tabs.Screen
         name="exercises"
         options={{
-          title: 'Exercises',
-          tabBarIcon: ({ color }) => <TabIcon name="list" color={color} />,
+          title: 'Self-care',
+          tabBarIcon: () => (
+            <View
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 23,
+                backgroundColor: c.ink,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: -20,
+              }}
+            >
+              <Feather size={20} name="award" color={c.lime} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="journal"
+        options={{
+          title: 'Journal',
+          tabBarIcon: ({ color }) => <TabIcon name="book-open" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -89,6 +99,16 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon name="user" color={color} />,
         }}
       />
+      {/* Hidden but reachable */}
+      <Tabs.Screen name="chat" options={{ href: null }} />
+      <Tabs.Screen
+        name="breath"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen name="recommendations" options={{ href: null }} />
       <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="two" options={{ href: null }} />
     </Tabs>

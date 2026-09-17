@@ -1,7 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState, useRef, useEffect } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,434 +12,252 @@ import {
   Text,
   TextInput,
   View,
-  ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { useTheme } from '@/src/hooks/useTheme';
+import { Serif, useCalm } from '@/src/components/calm/kit';
 import { useAuthStore } from '@/src/stores/authStore';
-import { sendChatMessage, ChatMessage } from '@/src/services/chatbot';
-import { radius, spacing } from '@/src/theme/spacing';
+import { sendChatMessage, type ChatMessage } from '@/src/services/chatbot';
+import { sendDoctorMessage, type DoctorChatMessage } from '@/src/services/doctor';
+import { fonts } from '@/src/theme/typography';
 
 const QUICK_PROMPTS = [
-  "I feel stressed and mentally exhausted.",
-  "I cannot sleep properly.",
-  "I have had headaches for several days.",
-  "What are some healthy habits?"
+  'I feel stressed and mentally exhausted.',
+  'I cannot sleep properly.',
+  'What are some healthy habits?',
+  'Suggest an exercise for today.',
+];
+
+const DOCTOR_PROMPTS = [
+  'I have a headache and poor sleep — what should I watch for?',
+  'My stress is high lately, should I see a doctor?',
+  'I feel anxious before work — triage me.',
+  'When should I seek urgent care?',
 ];
 
 export default function ChatScreen() {
-  const { colors, isDark } = useTheme();
+  const { c } = useCalm();
   const router = useRouter();
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const isDoctor = params.mode === 'doctor';
   const user = useAuthStore((state) => state.user);
   const scrollViewRef = useRef<ScrollView>(null);
-
-  const getActionButton = (messageText: string) => {
-    if (messageText.includes('Music') && messageText.includes('youtube.com')) {
-      return { label: 'Go to Music', action: () => router.push('/(tabs)/recommendations?tab=lifestyle&category=Music') };
-    }
-    if (messageText.includes('Cold Reset') || messageText.includes('exercise')) {
-      return { label: 'View Exercises', action: () => router.push('/(tabs)/exercises') };
-    }
-    return null;
-  };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'ai',
-      text: `Hello ${user?.displayName || 'there'}. I am your MindTrace AI assistant. I passively observe wellness signals to help support your mental wellbeing. How can I help you today?`,
+      text: isDoctor
+        ? `Hello ${user?.displayName || 'there'}. I am your AI Doctor (triage only, not a diagnosis). Describe symptoms and I'll give a safe next step + when to see a live doctor.`
+        : `Hello ${user?.displayName || 'there'}. I am your MindTrace companion. Tell me how you're feeling and I'll suggest something kind for right now.`,
       timestamp: new Date().toISOString(),
-    }
+    },
   ]);
   const [inputText, setInputText] = useState('');
   const [isThinking, setIsThinking] = useState(false);
 
-  // Auto scroll to bottom
   useEffect(() => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
   }, [messages, isThinking]);
 
-  const handleSend = async (textToSend: string) => {
-    if (!textToSend.trim()) return;
+  const actionFor = (text: string) => {
+    if (text.includes('youtube.com')) {
+      return { label: 'Open Music', go: () => router.push('/(tabs)/recommendations') };
+    }
+    if (text.includes('Breathwork') || text.includes('exercise')) {
+      return { label: 'Open Exercises', go: () => router.push('/(tabs)/exercises') };
+    }
+    return null;
+  };
 
+  const handleSend = async (raw: string) => {
+    const textToSend = raw.trim();
+    if (!textToSend) return;
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       sender: 'user',
-      text: textToSend.trim(),
+      text: textToSend,
       timestamp: new Date().toISOString(),
     };
-
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsThinking(true);
-
     try {
-      const replyText = await sendChatMessage(textToSend, messages, user?.id);
-      const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        text: replyText,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
-      Alert.alert('Error', 'Failed to communicate with wellness assistant.');
+      const replyText = isDoctor
+        ? await sendDoctorMessage(textToSend, messages as DoctorChatMessage[], user?.id)
+        : await sendChatMessage(textToSend, messages, user?.id);
+      setMessages((prev) => [
+        ...prev,
+        { id: `ai-${Date.now()}`, sender: 'ai', text: replyText, timestamp: new Date().toISOString() },
+      ]);
+    } catch {
+      Alert.alert('Error', 'Failed to reach the assistant. Please try again.');
     } finally {
       setIsThinking(false);
     }
   };
 
-  // Color theme mapping
-  const bgThemeColor = isDark ? '#0c0b16' : '#f6f5fb';
-  const headerBgColor = isDark ? '#0f0d22' : '#ffffff';
-  const cardBorderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(124, 58, 237, 0.08)';
-  const textColor = isDark ? '#ffffff' : '#0f0d1e';
-  const textMutedColor = isDark ? '#9ca3af' : '#6b7280';
-  const accentPurple = '#8b5cf6';
-  
-  // Disclaimer Styling
-  const disclaimerBg = isDark ? '#2d1414' : '#fef2f2';
-  const disclaimerBorder = 'rgba(239, 68, 68, 0.2)';
-  const disclaimerText = '#ef4444';
-
-  // AI Message bubble color
-  const aiBubbleBg = isDark ? '#1e1b4b' : '#f1f5f9';
+  const prompts = isDoctor ? DOCTOR_PROMPTS : QUICK_PROMPTS;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1, backgroundColor: bgThemeColor }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <ScreenContainer contentStyle={styles.container}>
-        {/* Header Banner */}
-        <View style={[styles.headerBanner, { backgroundColor: headerBgColor, borderBottomColor: cardBorderColor }]}>
-          <View style={styles.headerLeft}>
-            {/* Glowing Avatar */}
-            <View style={styles.avatarContainer}>
-              <View style={[styles.avatarGlow, { borderColor: accentPurple }]} />
-              <View style={[styles.avatarCircle, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#ebe6f6' }]}>
-                <Feather name="cpu" size={20} color={accentPurple} />
-              </View>
-              <View style={styles.onlineIndicator} />
-            </View>
-            <View>
-              <Text style={[styles.headerSubtitle, { color: textMutedColor }]}>
-                MENTAL WELLNESS ASSISTANT
-              </Text>
-              <Text style={[styles.headerTitle, { color: textColor }]}>
-                MindTrace Chat
-              </Text>
-            </View>
-          </View>
-          
-          <Pressable style={[styles.calendarBtn, { borderColor: cardBorderColor, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff' }]}>
-            <Feather name="calendar" size={16} color={textColor} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/dashboard'))}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={[styles.circle, { backgroundColor: c.surface, borderColor: c.line }]}
+          >
+            <Feather name="arrow-left" size={18} color={c.ink} />
           </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.eyebrow, { color: c.muted }]}>
+              {isDoctor ? 'AI DOCTOR • TRIAGE ONLY' : 'WELLNESS COMPANION'}
+            </Text>
+            <Serif style={[styles.title, { color: c.ink }]}>
+              {isDoctor ? 'AI Doctor' : 'Chat'}
+            </Serif>
+          </View>
+          <View style={[styles.avatar, { backgroundColor: c.limeSoft }]}>
+            <Feather name="cpu" size={18} color={c.limeInk} />
+          </View>
         </View>
 
-        {/* Disclaimer Banner */}
-        <View style={[styles.disclaimer, { backgroundColor: disclaimerBg, borderColor: disclaimerBorder }]}>
-          <Feather name="alert-triangle" size={14} color={disclaimerText} style={styles.disclaimerIcon} />
-          <Text style={[styles.disclaimerText, { color: disclaimerText }]}>
-            Disclaimer: MindTrace AI estimates wellness indicators passively. Not a clinical diagnosis. If in emergency, dial <Text style={styles.disclaimerBold}>988</Text>.
+        <View style={[styles.disclaimer, { backgroundColor: c.surface, borderColor: c.line }]}>
+          <Feather name="alert-triangle" size={13} color={c.muted} />
+          <Text style={[styles.disclaimerText, { color: c.muted }]}>
+            {isDoctor
+              ? 'Triage only, not a diagnosis. Emergency? Dial 988 or use SOS in Counsellor.'
+              : 'A supportive companion, not a clinician. Emergency? Dial 988.'}
           </Text>
         </View>
 
-        {/* Messages Scroll View */}
         <ScrollView
           ref={scrollViewRef}
-          contentContainerStyle={styles.messagesScroll}
+          contentContainerStyle={styles.messages}
           showsVerticalScrollIndicator={false}
         >
-          {messages.map((msg) => {
-            const isUser = msg.sender === 'user';
+          {messages.map((m) => {
+            const mine = m.sender === 'user';
+            const action = !mine ? actionFor(m.text) : null;
             return (
-              <View
-                key={msg.id}
-                style={[
-                  styles.messageWrapper,
-                  isUser ? styles.userWrapper : styles.aiWrapper,
-                ]}
-              >
+              <View key={m.id} style={[styles.row, mine ? styles.rowRight : styles.rowLeft]}>
                 <View
                   style={[
                     styles.bubble,
-                    isUser
-                      ? [styles.userBubble, { backgroundColor: accentPurple }]
-                      : [styles.aiBubble, { backgroundColor: aiBubbleBg }],
+                    mine
+                      ? { backgroundColor: c.ink, borderBottomRightRadius: 6 }
+                      : { backgroundColor: c.surface, borderColor: c.line, borderBottomLeftRadius: 6 },
                   ]}
                 >
-                  <Text style={[styles.messageText, { color: isUser ? '#ffffff' : textColor }]}>
-                    {msg.text}
-                  </Text>
-                  {!isUser && getActionButton(msg.text) && (
+                  <Text style={[styles.msgText, { color: mine ? c.bg : c.ink }]}>{m.text}</Text>
+                  {action ? (
                     <Pressable
-                      onPress={getActionButton(msg.text)?.action}
-                      style={[styles.actionButton, { marginTop: 12, backgroundColor: accentPurple, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6 }]}
+                      onPress={action.go}
+                      accessibilityRole="button"
+                      accessibilityLabel={action.label}
+                      style={[styles.actionBtn, { backgroundColor: mine ? c.bg : c.ink }]}
                     >
-                      <Text style={[styles.actionButtonText, { color: '#ffffff', fontSize: 13, fontWeight: '600' }]}>
-                        {getActionButton(msg.text)?.label}
+                      <Text style={[styles.actionText, { color: mine ? c.ink : c.bg }]}>
+                        {action.label} →
                       </Text>
                     </Pressable>
-                  )}
+                  ) : null}
                 </View>
               </View>
             );
           })}
-
-          {isThinking && (
-            <View style={[styles.messageWrapper, styles.aiWrapper]}>
-              <View style={[styles.bubble, styles.aiBubble, { backgroundColor: aiBubbleBg, flexDirection: 'row', gap: 8, alignItems: 'center' }]}>
-                <ActivityIndicator size="small" color={accentPurple} />
-                <Text style={[styles.thinkingText, { color: textMutedColor }]}>Thinking...</Text>
+          {isThinking ? (
+            <View style={[styles.row, styles.rowLeft]}>
+              <View style={[styles.bubble, { backgroundColor: c.surface, borderColor: c.line }]}>
+                <ActivityIndicator size="small" color={c.muted} />
               </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
 
-        {/* Quick Prompts Suggestions */}
-        <View style={styles.promptsSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promptsRow}>
-            {QUICK_PROMPTS.map((prompt, idx) => (
-              <Pressable
-                key={idx}
-                onPress={() => handleSend(prompt)}
-                style={[styles.promptChip, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#ffffff', borderColor: cardBorderColor }]}
-              >
-                <Text style={[styles.promptText, { color: textColor }]}>{prompt}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.prompts}
+        >
+          {prompts.map((p) => (
+            <Pressable
+              key={p}
+              onPress={() => handleSend(p)}
+              accessibilityRole="button"
+              accessibilityLabel={`Ask: ${p}`}
+              style={[styles.prompt, { backgroundColor: c.surface, borderColor: c.line }]}
+            >
+              <Text style={[styles.promptText, { color: c.ink }]} numberOfLines={1}>
+                {p}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
 
-        {/* Input Bar (Capsule Style) */}
-        <View style={styles.inputContainer}>
-          <View style={[styles.inputCapsule, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#ffffff', borderColor: cardBorderColor }]}>
+        <View style={styles.inputRow}>
+          <View style={[styles.inputBox, { backgroundColor: c.surface, borderColor: c.line }]}>
             <TextInput
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Tell me how you're feeling today..."
-              placeholderTextColor={textMutedColor}
-              style={[styles.inputField, { color: textColor }]}
+              placeholder="Tell me how you're feeling…"
+              placeholderTextColor={c.faint}
+              style={[styles.input, { color: c.ink }]}
               onSubmitEditing={() => handleSend(inputText)}
+              accessibilityLabel="Message input"
             />
-            
-            <View style={styles.inputActions}>
-              <Pressable style={styles.micBtn}>
-                <Feather name="mic" size={16} color={textMutedColor} />
-              </Pressable>
-              
-              <Pressable
-                onPress={() => handleSend(inputText)}
-                style={[styles.sendBtn, { backgroundColor: inputText.trim() ? accentPurple : 'rgba(124, 58, 237, 0.4)' }]}
-                disabled={!inputText.trim()}
-              >
-                <Feather name="arrow-up" size={16} color="#ffffff" />
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={() => handleSend(inputText)}
+              disabled={!inputText.trim()}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+              style={[styles.send, { backgroundColor: c.ink, opacity: inputText.trim() ? 1 : 0.4 }]}
+            >
+              <Feather name="arrow-up" size={16} color={c.bg} />
+            </Pressable>
           </View>
         </View>
-        
-        {/* visual buffer for floating tab bar */}
-        <View style={{ height: 100 }} />
-      </ScreenContainer>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
-    flex: 1,
+  safe: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 8 },
+  circle: {
+    width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  headerBanner: {
-    paddingTop: Platform.OS === 'ios' ? 54 : 32,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatarContainer: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarGlow: {
-    position: 'absolute',
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 1.5,
-    opacity: 0.6,
-  },
-  avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#10b981',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-  },
-  headerSubtitle: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 1,
-  },
-  calendarBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  eyebrow: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.2 },
+  title: { fontSize: 24 },
+  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   disclaimer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginHorizontal: 16,
-    marginTop: 14,
-    padding: 10,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    alignItems: 'flex-start',
+    flexDirection: 'row', gap: 8, marginHorizontal: 20, marginTop: 10,
+    padding: 10, borderRadius: 14, borderWidth: 1, alignItems: 'flex-start',
   },
-  disclaimerIcon: {
-    marginTop: 2,
-    flexShrink: 0,
+  disclaimerText: { flex: 1, fontFamily: fonts.regular, fontSize: 11, lineHeight: 16 },
+  messages: { paddingHorizontal: 20, paddingVertical: 14, gap: 10, paddingBottom: 8 },
+  row: { flexDirection: 'row', width: '100%' },
+  rowRight: { justifyContent: 'flex-end' },
+  rowLeft: { justifyContent: 'flex-start' },
+  bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 11, borderRadius: 18, borderWidth: 1, borderColor: 'transparent' },
+  msgText: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  actionBtn: { marginTop: 10, borderRadius: 999, paddingVertical: 9, alignItems: 'center' },
+  actionText: { fontFamily: fonts.bold, fontSize: 13 },
+  prompts: { paddingHorizontal: 20, gap: 8, paddingVertical: 8 },
+  prompt: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, minHeight: 44, justifyContent: 'center', maxWidth: 260 },
+  promptText: { fontFamily: fonts.medium, fontSize: 12 },
+  inputRow: { paddingHorizontal: 20, paddingBottom: 110, paddingTop: 4 },
+  inputBox: {
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1.2, borderRadius: 999,
+    paddingLeft: 16, paddingRight: 6, minHeight: 54,
   },
-  disclaimerText: {
-    flex: 1,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  disclaimerBold: {
-    fontWeight: 'bold',
-  },
-  messagesScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  messageWrapper: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  userWrapper: {
-    justifyContent: 'flex-end',
-  },
-  aiWrapper: {
-    justifyContent: 'flex-start',
-  },
-  bubble: {
-    maxWidth: '80%',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 18,
-  },
-  userBubble: {
-    borderBottomRightRadius: 2,
-  },
-  aiBubble: {
-    borderBottomLeftRadius: 2,
-  },
-  messageText: {
-    fontSize: 13.5,
-    lineHeight: 19,
-  },
-  thinkingText: {
-    fontSize: 13,
-  },
-  promptsSection: {
-    paddingVertical: 8,
-  },
-  promptsRow: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  promptChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.full,
-    borderWidth: 1,
-  },
-  promptText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  inputContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  inputCapsule: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    height: 48,
-  },
-  inputField: {
-    flex: 1,
-    fontSize: 13.5,
-    height: '100%',
-  },
-  inputActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  micBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButton: {
-    alignSelf: 'flex-start',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  actionButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  input: { flex: 1, fontFamily: fonts.regular, fontSize: 14, minHeight: 48 },
+  send: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
 });

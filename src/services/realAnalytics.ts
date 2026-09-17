@@ -7,7 +7,7 @@ import {
   getSystemWellbeingMetrics,
 } from '@/modules/android-wellbeing';
 
-// Live telemetry state
+// ─── Real telemetry state (session-only, never seeded) ───
 let totalKeypresses = 0;
 let backspaces = 0;
 let lastKeypressTime = 0;
@@ -20,18 +20,17 @@ let mouseMoves = 0;
 
 let accelerometerSubscription: any = null;
 let acceleration = { x: 0, y: 0, z: 0 };
+let motionSampleCount = 0;
 
-// Track inactivity for sleep calculation
 const INTERACTION_KEY = 'mindtrace_last_interaction';
 const SLEEP_LOG_KEY = 'mindtrace_sleep_duration';
+const SESSION_START_KEY = 'mindtrace_session_start';
 
-// Track touch interaction (called by components)
 export function trackInteraction() {
   totalClicks++;
   saveLastInteraction();
 }
 
-// Track keys typed (called by inputs)
 export function trackKeyPress(key: string) {
   totalKeypresses++;
   if (key === 'Backspace') {
@@ -40,12 +39,17 @@ export function trackKeyPress(key: string) {
   const now = Date.now();
   if (lastKeypressTime > 0) {
     const diff = now - lastKeypressTime;
-    if (diff < 2000) { // filter out long pauses
+    if (diff < 2000) {
       keypressIntervalSum += diff;
       keypressIntervalCount++;
     }
   }
   lastKeypressTime = now;
+  saveLastInteraction();
+}
+
+export function trackScroll() {
+  totalScrolls++;
   saveLastInteraction();
 }
 
@@ -56,65 +60,57 @@ async function saveLastInteraction() {
     if (lastStr) {
       const last = parseInt(lastStr, 10);
       const gapHours = (now - last) / (1000 * 60 * 60);
-      // If gap is between 5 and 12 hours, assume this was a sleep window!
+      // Only record sleep windows from REAL inactivity gaps (5-12h)
       if (gapHours >= 5 && gapHours <= 12) {
         await AsyncStorage.setItem(SLEEP_LOG_KEY, gapHours.toFixed(1));
       }
     }
     await AsyncStorage.setItem(INTERACTION_KEY, now.toString());
-  } catch (e) {
-    // ignore storage errors
-  }
+  } catch {}
 }
 
-// Initialize listeners
 export function initTelemetry() {
-  // 1. Accelerometer (Native mobile only, with try/catch safeguards)
   if (!accelerometerSubscription && Platform.OS !== 'web') {
     try {
       Accelerometer.isAvailableAsync()
         .then((available) => {
           if (available) {
-            Accelerometer.setUpdateInterval(500);
-            accelerometerSubscription = Accelerometer.addListener((data) => {
-              acceleration = {
-                x: data.x,
-                y: data.y,
-                z: data.z,
-              };
-            });
+            try {
+              Accelerometer.setUpdateInterval(1000);
+              accelerometerSubscription = Accelerometer.addListener((data) => {
+                acceleration = { x: data.x, y: data.y, z: data.z };
+                motionSampleCount++;
+              });
+            } catch (err) {
+              console.warn('[telemetry] accelerometer listener failed:', err);
+            }
           }
         })
-        .catch((err) => {
-          console.warn('Accelerometer is not available:', err);
-        });
-    } catch (e) {
-      console.warn('Failed to initialize Accelerometer:', e);
-    }
+        .catch(() => {});
+    } catch {}
   }
 
-  // 2. Web DOM Listeners (Web only)
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    window.addEventListener('keydown', (e) => {
-      trackKeyPress(e.key);
-    });
+    // Guard against double-registration
+    const w = window as any;
+    if (w.__mindtrace_listeners) return;
+    w.__mindtrace_listeners = true;
 
-    window.addEventListener('click', () => {
-      trackInteraction();
-    });
-
-    window.addEventListener('scroll', () => {
-      totalScrolls++;
-      saveLastInteraction();
-    });
-
+    window.addEventListener('keydown', (e) => trackKeyPress(e.key));
+    window.addEventListener('click', () => trackInteraction());
+    window.addEventListener('scroll', () => trackScroll(), { passive: true });
     window.addEventListener('mousemove', () => {
       mouseMoves++;
-      if (Math.random() < 0.05) {
-        saveLastInteraction();
-      }
     });
   }
+
+  AsyncStorage.getItem(SESSION_START_KEY).catch(() => null).then(async (v) => {
+    if (!v) {
+      try {
+        await AsyncStorage.setItem(SESSION_START_KEY, Date.now().toString());
+      } catch {}
+    }
+  });
 }
 
 export function stopTelemetry() {
@@ -123,149 +119,234 @@ export function stopTelemetry() {
       if (typeof accelerometerSubscription.remove === 'function') {
         accelerometerSubscription.remove();
       }
-    } catch (e) {
-      console.warn('Error removing accelerometer subscription:', e);
-    }
+    } catch {}
     accelerometerSubscription = null;
   }
 }
 
-export async function getLiveMetrics() {
-  // Fetch native Android wellbeing metrics if permission is granted
+export interface LiveMetrics {
+  hasSufficientData: boolean;
+  moodScore: number | null;
+  sleepHours: number | null;
+  activityLevel: number | null;
+  stressIndex: number | null;
+  riskLevel: 'low' | 'medium' | 'high' | null;
+  rawSignals: {
+    totalKeypresses: number;
+    backspaces: number;
+    backspaceRatio: number | null;
+    avgKeyInterval: number | null;
+    totalClicks: number;
+    totalScrolls: number;
+    motionMagnitude: number | null;
+    motionSamples: number;
+    androidScreenTime: number | null;
+    androidUnlocks: number | null;
+  };
+  behaviorAnalysis: {
+    screenTimeMinutes: number | null;
+    sleepIndication: string | null;
+    doomScrollingDetected: boolean;
+    lateNightUsageDetected: boolean;
+    usageSpikesDetected: boolean;
+    focusLevel: number | null;
+    burnoutProbability: number | null;
+    anxietyIndication: number | null;
+    sleepHealthScore: number | null;
+    emotionalWellnessScore: number | null;
+  } | null;
+}
+
+/**
+ * REAL-ONLY metrics engine.
+ * - Returns nulls when there is no real signal (no fake baselines).
+ * - hasSufficientData = true only when at least one real source exists.
+ */
+export async function getLiveMetrics(): Promise<LiveMetrics> {
   const hasPermission = hasUsageStatsPermission();
   const nativeMetrics = hasPermission
     ? getSystemWellbeingMetrics()
     : { screenTimeMinutes: 0, unlockCount: 0, sleepHours: 0 };
 
-  // Check if the user has interacted with the app or if we have real device telemetry from system access
-  const hasInteraction =
-    totalClicks > 0 ||
-    totalKeypresses > 0 ||
-    totalScrolls > 0 ||
-    mouseMoves > 0 ||
-    (hasPermission && (nativeMetrics.screenTimeMinutes > 0 || nativeMetrics.unlockCount > 0));
+  const hasNativeData =
+    hasPermission &&
+    (nativeMetrics.screenTimeMinutes > 0 ||
+      nativeMetrics.unlockCount > 0 ||
+      nativeMetrics.sleepHours > 0);
 
-  if (!hasInteraction) {
-    return {
-      moodScore: 0,
-      sleepHours: 0,
-      activityLevel: 0,
-      stressIndex: 0,
-      riskLevel: 'low' as const,
-      rawSignals: {
-        totalKeypresses: 0,
-        backspaces: 0,
-        backspaceRatio: 0,
-        avgKeyInterval: 0,
-        totalClicks: 0,
-        totalScrolls: 0,
-        mouseMoves: 0,
-        motionMagnitude: 0,
-        androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
-        androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
-      },
-    };
-  }
+  const hasTypingData = totalKeypresses >= 5 && keypressIntervalCount >= 3;
+  const hasInteractionData = totalClicks > 0 || totalScrolls > 0;
+  const hasMotionData = motionSampleCount >= 3;
 
-  // 1. Calculate Sleep
-  let sleepHours = 7.5; // fallback
+  const hasSufficientData = hasNativeData || hasTypingData || hasInteractionData || hasMotionData;
+
+  const empty: LiveMetrics = {
+    hasSufficientData: false,
+    moodScore: null,
+    sleepHours: null,
+    activityLevel: null,
+    stressIndex: null,
+    riskLevel: null,
+    rawSignals: {
+      totalKeypresses,
+      backspaces,
+      backspaceRatio: null,
+      avgKeyInterval: null,
+      totalClicks,
+      totalScrolls,
+      motionMagnitude: null,
+      motionSamples: motionSampleCount,
+      androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
+      androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
+    },
+    behaviorAnalysis: null,
+  };
+
+  if (!hasSufficientData) return empty;
+
+  // ─── Sleep: native OR real inactivity gap, else null ───
+  let sleepHours: number | null = null;
   if (hasPermission && nativeMetrics.sleepHours > 0) {
     sleepHours = Number(nativeMetrics.sleepHours.toFixed(1));
   } else {
     try {
-      const storedSleep = await AsyncStorage.getItem(SLEEP_LOG_KEY);
-      if (storedSleep) {
-        sleepHours = parseFloat(storedSleep);
+      const stored = await AsyncStorage.getItem(SLEEP_LOG_KEY);
+      if (stored) {
+        const parsed = parseFloat(stored);
+        if (!Number.isNaN(parsed) && parsed >= 3 && parsed <= 12) sleepHours = parsed;
       }
     } catch {}
   }
 
-  // 2. Calculate Activity
-  // Clicks, scrolls, and mouse moves count as raw interaction
-  const totalInteractions = totalClicks * 5 + totalScrolls * 2 + Math.min(mouseMoves, 200);
-  const motionMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
-  const motionActivity = Math.min(motionMagnitude * 30, 50); // cap contribution at 50
+  // ─── Typing signals (only if real) ───
+  const avgKeyInterval =
+    keypressIntervalCount > 0 ? Math.round(keypressIntervalSum / keypressIntervalCount) : null;
+  const backspaceRatio =
+    totalKeypresses > 0 ? Number((backspaces / totalKeypresses).toFixed(3)) : null;
 
-  let activityLevel = Math.min(100, Math.max(30, 45 + Math.round(totalInteractions / 10) + Math.round(motionActivity)));
-  
-  if (hasPermission) {
-    // Factor in native unlocks (2 pts each) and screen time (1 pt per 10 mins)
-    const nativeActivityContribution = Math.min(30, (nativeMetrics.unlockCount * 2) + (nativeMetrics.screenTimeMinutes / 10));
-    activityLevel = Math.min(100, activityLevel + Math.round(nativeActivityContribution));
-  }
+  const motionMagnitude = hasMotionData
+    ? Number(Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2).toFixed(2))
+    : null;
 
-  // 3. Calculate Mood & Stress
-  const avgKeyInterval = keypressIntervalCount > 0 ? (keypressIntervalSum / keypressIntervalCount) : 400; // default 400ms
-  const backspaceRatio = totalKeypresses > 0 ? (backspaces / totalKeypresses) : 0.05; // default 5% error rate
+  // ─── Stress / Mood: typing-driven ONLY ───
+  let stressIndex: number | null = null;
+  let moodScore: number | null = null;
 
-  let stressIndex = 40; // baseline
-  let moodScore = 70; // baseline
-
-  if (totalKeypresses > 3) {
+  if (hasTypingData && avgKeyInterval !== null && backspaceRatio !== null) {
     let typingSpeedStress = 0;
-    if (avgKeyInterval < 250) typingSpeedStress = 25; // Rushed / high anxiety
-    else if (avgKeyInterval > 600) typingSpeedStress = 15; // Hesitant / lethargic
+    if (avgKeyInterval < 250) typingSpeedStress = 25;
+    else if (avgKeyInterval > 600) typingSpeedStress = 15;
 
-    const frictionStress = Math.min(backspaceRatio * 250, 45); // up to 45 from corrections
-    stressIndex = Math.min(100, Math.max(15, 30 + Math.round(typingSpeedStress + frictionStress)));
+    const frictionStress = Math.min(backspaceRatio * 250, 45);
+    stressIndex = Math.min(100, Math.max(5, 30 + Math.round(typingSpeedStress + frictionStress)));
 
     const frictionPenalty = Math.min(backspaceRatio * 200, 40);
     const speedBonus = avgKeyInterval >= 280 && avgKeyInterval <= 450 ? 15 : -10;
-    moodScore = Math.min(100, Math.max(30, 75 - Math.round(frictionPenalty) + speedBonus));
-  } else {
-    // If not typing, derive dynamically from clicks/scrolls
-    const interactionActivity = Math.min(totalClicks + totalScrolls / 5, 20);
-    stressIndex = Math.min(80, Math.max(20, 45 + Math.round(interactionActivity) - Math.round(sleepHours * 2)));
-    moodScore = Math.min(100, Math.max(40, 65 + Math.round(sleepHours * 2) - Math.round(stressIndex / 3)));
+    moodScore = Math.min(100, Math.max(5, 75 - Math.round(frictionPenalty) + speedBonus));
+
+    // Excessive unlock checking adds real anxiety load
+    if (hasPermission && nativeMetrics.unlockCount > 25) {
+      const checkAnxiety = Math.min(20, (nativeMetrics.unlockCount - 25) * 0.8);
+      stressIndex = Math.min(100, stressIndex + Math.round(checkAnxiety));
+      moodScore = Math.max(5, moodScore - Math.round(checkAnxiety / 2));
+    }
   }
 
-  // Factor in native unlocks into Stress (anxiety checking pick-ups)
-  if (hasPermission && nativeMetrics.unlockCount > 25) {
-    const checkAnxiety = Math.min(20, (nativeMetrics.unlockCount - 25) * 0.8);
-    stressIndex = Math.min(100, stressIndex + Math.round(checkAnxiety));
-    moodScore = Math.max(30, moodScore - Math.round(checkAnxiety / 2));
+  // ─── Activity: interaction + motion + native unlocks (only if any exist) ───
+  let activityLevel: number | null = null;
+  if (hasInteractionData || hasMotionData || hasNativeData) {
+    const totalInteractions = totalClicks * 5 + totalScrolls * 2;
+    const motionActivity = motionMagnitude !== null ? Math.min(motionMagnitude * 30, 50) : 0;
+    let computed = 45 + Math.round(totalInteractions / 10) + Math.round(motionActivity);
+    if (hasNativeData) {
+      computed += Math.round(
+        Math.min(30, nativeMetrics.unlockCount * 2 + nativeMetrics.screenTimeMinutes / 10)
+      );
+    }
+    activityLevel = Math.min(100, Math.max(5, computed));
   }
 
-  const riskLevel = stressIndex < 35 ? 'low' : stressIndex < 65 ? 'medium' : 'high';
+  const riskLevel =
+    stressIndex === null ? null : stressIndex < 35 ? 'low' : stressIndex < 65 ? 'medium' : 'high';
 
-  // Calculate Screen Time & App Usage Detections
-  let screenTimeMinutes = 180; // Baseline
-  if (hasPermission && nativeMetrics.screenTimeMinutes > 0) {
-    screenTimeMinutes = nativeMetrics.screenTimeMinutes;
-  } else {
-    // Estimate based on session activity
-    screenTimeMinutes = Math.min(480, Math.max(45, 120 + totalClicks * 2 + totalScrolls * 0.5));
-  }
-
-  // App Usage Breakdown
-  const mostUsedApps = [
-    { name: 'Instagram', durationMinutes: Math.round(screenTimeMinutes * 0.4), percentage: 40, icon: 'instagram' },
-    { name: 'Twitter/X', durationMinutes: Math.round(screenTimeMinutes * 0.25), percentage: 25, icon: 'twitter' },
-    { name: 'WhatsApp', durationMinutes: Math.round(screenTimeMinutes * 0.15), percentage: 15, icon: 'message-circle' },
-    { name: 'Chrome', durationMinutes: Math.round(screenTimeMinutes * 0.1), percentage: 10, icon: 'chrome' },
-    { name: 'MindTrace AI', durationMinutes: Math.round(screenTimeMinutes * 0.1), percentage: 10, icon: 'activity' },
-  ];
-
-  // Specific passive detections
+  // ─── Behavior flags from REAL signals only ───
   const currentHour = new Date().getHours();
-  const doomScrollingDetected = (totalScrolls > 25 && totalKeypresses < 6) || mostUsedApps[0].durationMinutes > 90;
-  const lateNightUsageDetected = (currentHour >= 23 || currentHour <= 4) && (totalClicks > 5 || totalScrolls > 5);
-  const socialMediaOveruseDetected = mostUsedApps[0].durationMinutes + mostUsedApps[1].durationMinutes > 120;
-  const usageSpikesDetected = totalClicks > 40 || totalScrolls > 40 || (hasPermission && nativeMetrics.unlockCount > 30);
+  const screenTimeMinutes =
+    hasPermission && nativeMetrics.screenTimeMinutes > 0 ? nativeMetrics.screenTimeMinutes : null;
 
-  // Sleep pattern description
-  const bedHour = currentHour >= 22 || currentHour <= 4 ? currentHour : 23;
-  const sleepIndication = `Sleep window: ${bedHour}:45 PM - 7:15 AM (${sleepHours} hrs) • Restless score: ${stressIndex > 60 ? 'Moderate' : 'Low'}`;
+  const doomScrollingDetected = totalScrolls > 25 && totalKeypresses < 6;
+  const lateNightUsageDetected =
+    (currentHour >= 23 || currentHour <= 4) && (totalClicks > 5 || totalScrolls > 5);
+  const usageSpikesDetected =
+    totalClicks > 40 || totalScrolls > 40 || (hasPermission && nativeMetrics.unlockCount > 30);
 
-  // Core AI Biomarkers
-  const focusLevel = Math.min(100, Math.max(10, Math.round(100 - (backspaceRatio * 150) - (stressIndex * 0.25))));
-  const burnoutProbability = Math.min(100, Math.max(5, Math.round((stressIndex * 0.6) + ((8 - sleepHours) * 6) + (screenTimeMinutes > 300 ? 10 : 0))));
-  const anxietyIndication = Math.min(100, Math.max(5, Math.round((stressIndex * 0.7) + (avgKeyInterval < 300 ? 15 : 0) + (hasPermission && nativeMetrics.unlockCount > 20 ? 10 : 0))));
-  const depressionTendency = Math.min(100, Math.max(5, Math.round((100 - moodScore) * 0.75 + (50 - activityLevel) * 0.3)));
-  const sleepHealthScore = Math.min(100, Math.max(10, Math.round(Math.min(sleepHours / 8, 1.2) * 80 + (sleepHours >= 7 && sleepHours <= 9 ? 20 : 0) - (lateNightUsageDetected ? 15 : 0))));
-  const emotionalWellnessScore = Math.min(100, Math.max(10, Math.round(moodScore * 0.75 + activityLevel * 0.25)));
+  let sleepIndication: string | null = null;
+  if (sleepHours !== null) {
+    sleepIndication = `Last rest window ~${sleepHours} hrs${
+      stressIndex !== null && stressIndex > 60 ? ' • Restless score: Moderate' : ' • Restless score: Low'
+    }`;
+  }
+
+  const focusLevel =
+    stressIndex !== null && backspaceRatio !== null
+      ? Math.min(100, Math.max(5, Math.round(100 - backspaceRatio * 150 - stressIndex * 0.25)))
+      : null;
+
+  const burnoutProbability =
+    stressIndex !== null
+      ? Math.min(
+          100,
+          Math.max(
+            5,
+            Math.round(
+              stressIndex * 0.6 +
+                (sleepHours !== null ? (8 - sleepHours) * 6 : 0) +
+                (screenTimeMinutes !== null && screenTimeMinutes > 300 ? 10 : 0)
+            )
+          )
+        )
+      : null;
+
+  const anxietyIndication =
+    stressIndex !== null
+      ? Math.min(
+          100,
+          Math.max(
+            5,
+            Math.round(
+              stressIndex * 0.7 +
+                (avgKeyInterval !== null && avgKeyInterval < 300 ? 15 : 0) +
+                (hasPermission && nativeMetrics.unlockCount > 20 ? 10 : 0)
+            )
+          )
+        )
+      : null;
+
+  const sleepHealthScore =
+    sleepHours !== null
+      ? Math.min(
+          100,
+          Math.max(
+            5,
+            Math.round(
+              Math.min(sleepHours / 8, 1.2) * 80 +
+                (sleepHours >= 7 && sleepHours <= 9 ? 20 : 0) -
+                (lateNightUsageDetected ? 15 : 0)
+            )
+          )
+        )
+      : null;
+
+  const emotionalWellnessScore =
+    moodScore !== null
+      ? Math.min(
+          100,
+          Math.max(5, Math.round(moodScore * 0.75 + (activityLevel ?? 50) * 0.25))
+        )
+      : null;
 
   return {
+    hasSufficientData: true,
     moodScore,
     sleepHours,
     activityLevel,
@@ -274,29 +355,38 @@ export async function getLiveMetrics() {
     rawSignals: {
       totalKeypresses,
       backspaces,
-      backspaceRatio: Number((backspaceRatio * 100).toFixed(1)),
-      avgKeyInterval: Math.round(avgKeyInterval),
+      backspaceRatio: backspaceRatio !== null ? Number((backspaceRatio * 100).toFixed(1)) : null,
+      avgKeyInterval,
       totalClicks,
       totalScrolls,
-      mouseMoves,
-      motionMagnitude: Number(motionMagnitude.toFixed(2)),
+      motionMagnitude,
+      motionSamples: motionSampleCount,
       androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
       androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
     },
     behaviorAnalysis: {
       screenTimeMinutes,
-      mostUsedApps,
       sleepIndication,
       doomScrollingDetected,
       lateNightUsageDetected,
-      socialMediaOveruseDetected,
       usageSpikesDetected,
       focusLevel,
       burnoutProbability,
       anxietyIndication,
-      depressionTendency,
       sleepHealthScore,
       emotionalWellnessScore,
     },
   };
+}
+
+export function resetSessionTelemetry() {
+  totalKeypresses = 0;
+  backspaces = 0;
+  lastKeypressTime = 0;
+  keypressIntervalSum = 0;
+  keypressIntervalCount = 0;
+  totalClicks = 0;
+  totalScrolls = 0;
+  mouseMoves = 0;
+  motionSampleCount = 0;
 }

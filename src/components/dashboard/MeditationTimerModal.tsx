@@ -8,9 +8,10 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+// import { Audio } from 'expo-av'; // TODO: Fix version compatibility
 
 import { useTheme } from '@/src/hooks/useTheme';
+import { useCalm } from '@/src/components/calm/kit';
 import { radius, spacing } from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
 
@@ -38,66 +39,67 @@ const AUDIO_URLS: Record<string, string> = {
 
 export function MeditationTimerModal({ visible, onClose }: MeditationTimerModalProps) {
   const { colors, isDark } = useTheme();
+  const { c } = useCalm();
   const [duration, setDuration] = useState(5); // mins
   const [sound, setSound] = useState('None');
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [guideIndex, setGuideIndex] = useState(0);
 
-  const ambientSoundRef = useRef<Audio.Sound | null>(null);
+  const ambientSoundRef = useRef<any>(null); // TODO: Fix Audio type when expo-av is compatible
 
-  // Audio setup when session starts/stops
-  useEffect(() => {
-    async function manageAudio() {
-      if (isActive && sound !== 'None' && AUDIO_URLS[sound]) {
-        try {
-          if (ambientSoundRef.current) {
-            await ambientSoundRef.current.stopAsync();
-            await ambientSoundRef.current.unloadAsync();
-            ambientSoundRef.current = null;
-          }
-          await Audio.setAudioModeAsync({
-            playsInSilentModeIOS: true,
-            staysActiveInBackground: true,
-          });
-          const { sound: newSound } = await Audio.Sound.createAsync(
-            { uri: AUDIO_URLS[sound] },
-            { shouldPlay: true, isLooping: true, volume: 0.8 }
-          );
-          ambientSoundRef.current = newSound;
-        } catch (e) {
-          console.warn('Failed to load/play ambient audio:', e);
-        }
-      } else {
-        if (ambientSoundRef.current) {
-          try {
-            await ambientSoundRef.current.pauseAsync();
-          } catch (e) {
-            console.warn(e);
-          }
-        }
-      }
-    }
-    manageAudio();
-  }, [isActive, sound]);
+  // Audio setup when session starts/stops - disabled due to expo-av version compatibility issues
+  // useEffect(() => {
+  //   async function manageAudio() {
+  //     if (isActive && sound !== 'None' && AUDIO_URLS[sound]) {
+  //       try {
+  //         if (ambientSoundRef.current) {
+  //           await ambientSoundRef.current.stopAsync();
+  //           await ambientSoundRef.current.unloadAsync();
+  //           ambientSoundRef.current = null;
+  //         }
+  //         await Audio.setAudioModeAsync({
+  //           playsInSilentModeIOS: true,
+  //           staysActiveInBackground: true,
+  //         });
+  //         const { sound: newSound } = await Audio.Sound.createAsync(
+  //           { uri: AUDIO_URLS[sound] },
+  //           { shouldPlay: true, isLooping: true, volume: 0.8 }
+  //         );
+  //         ambientSoundRef.current = newSound;
+  //       } catch (e) {
+  //         console.warn('Failed to load/play ambient audio:', e);
+  //       }
+  //     } else {
+  //       if (ambientSoundRef.current) {
+  //         try {
+  //           await ambientSoundRef.current.pauseAsync();
+  //         } catch (e) {
+  //           console.warn(e);
+  //         }
+  //       }
+  //     }
+  //   }
+  //   manageAudio();
+  // }, [isActive, sound]);
 
-  // Clean up sound on hidden visibility
-  useEffect(() => {
-    if (!visible && ambientSoundRef.current) {
-      ambientSoundRef.current.stopAsync().catch(() => {});
-      ambientSoundRef.current.unloadAsync().catch(() => {});
-      ambientSoundRef.current = null;
-    }
-  }, [visible]);
+  // Clean up sound on hidden visibility - disabled due to expo-av version compatibility issues
+  // useEffect(() => {
+  //   if (!visible && ambientSoundRef.current) {
+  //     ambientSoundRef.current.stopAsync().catch(() => {});
+  //     ambientSoundRef.current.unloadAsync().catch(() => {});
+  //     ambientSoundRef.current = null;
+  //   }
+  // }, [visible]);
 
-  // Clean up sound on unmount
-  useEffect(() => {
-    return () => {
-      if (ambientSoundRef.current) {
-        ambientSoundRef.current.unloadAsync().catch(() => {});
-      }
-    };
-  }, []);
+  // Clean up sound on unmount - disabled due to expo-av version compatibility issues
+  // useEffect(() => {
+  //   return () => {
+  //     if (ambientSoundRef.current) {
+  //       ambientSoundRef.current.unloadAsync().catch(() => {});
+  //     }
+  //   };
+  // }, []);
 
   // Initialize timer
   useEffect(() => {
@@ -143,7 +145,7 @@ export function MeditationTimerModal({ visible, onClose }: MeditationTimerModalP
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+        <View style={[styles.modalContainer, { backgroundColor: c.surface, borderColor: c.line }]}>
           
           {/* Header */}
           <View style={styles.header}>

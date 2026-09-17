@@ -10,6 +10,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 
 import { useTheme } from '@/src/hooks/useTheme';
+import { useCalm } from '@/src/components/calm/kit';
 import { GlassCard } from '@/src/components/ui/GlassCard';
 import { radius, spacing } from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
@@ -23,25 +24,26 @@ interface WeeklyReportModalProps {
 
 export function WeeklyReportModal({ visible, onClose, seriesData, summaryData }: WeeklyReportModalProps) {
   const { colors, isDark } = useTheme();
+  const { c } = useCalm();
 
-  // Calculate averages from series data (fallback to defaults if empty)
+  // Calculate averages from REAL series data only (null = insufficient)
   const getAverage = (arr: number[]) => {
-    if (!arr || arr.length === 0) return 0;
-    const clean = arr.filter(v => typeof v === 'number' && v > 0);
-    if (clean.length === 0) return 0;
+    if (!arr || arr.length === 0) return null;
+    const clean = arr.filter((v) => typeof v === 'number');
+    if (clean.length === 0) return null;
     return Math.round(clean.reduce((sum, v) => sum + v, 0) / clean.length);
   };
 
-  const avgMood = getAverage(seriesData?.mood) || summaryData?.moodScore || 75;
-  const avgSleep = (getAverage(seriesData?.sleep) / 10) || summaryData?.sleepHours || 7.2;
-  const avgActivity = getAverage(seriesData?.activity) || summaryData?.activityLevel || 60;
-  const avgStress = getAverage(seriesData?.stress) || summaryData?.stressIndex || 40;
+  const avgMood = getAverage(seriesData?.mood) ?? summaryData?.moodScore ?? null;
+  const avgSleepRaw = getAverage(seriesData?.sleep) ?? summaryData?.sleepHours ?? null;
+  const avgSleep = typeof avgSleepRaw === 'number' ? Number(avgSleepRaw.toFixed(1)) : null;
+  const avgActivity = getAverage(seriesData?.activity) ?? summaryData?.activityLevel ?? null;
+  const avgStress = getAverage(seriesData?.stress) ?? summaryData?.stressIndex ?? null;
+  const hasReportData = avgMood !== null || avgSleep !== null || avgActivity !== null || avgStress !== null;
 
-  // Render achievement cards
+  // Achievements derived from real flags only (no fake streaks)
   const achievements = [
-    { title: "Detox Master", desc: "No late-night screen usage detected for 3 consecutive days.", icon: "shield", color: "#6ee7b7" },
-    { title: "Mindfulness Streak", desc: "Completed 4 clinical breathing practices this week.", icon: "wind", color: "#a2cbfd" },
-    { title: "Focus Champion", desc: "Average key interval speed is highly stable, indicating calm state.", icon: "zap", color: "#ffb3d9" },
+    { title: 'Real data only', desc: hasReportData ? 'Averages below are computed from your real snapshots.' : 'Sync telemetry or add a journal check-in to generate your first real report.', icon: 'shield', color: '#6ee7b7' },
   ];
 
   return (
@@ -65,19 +67,19 @@ export function WeeklyReportModal({ visible, onClose, seriesData, summaryData }:
               Here is your summarized cognitive telemetry and digital behavior analysis for the past 7 days.
             </Text>
 
-            {/* Weekly Metrics Summary Grid */}
+            {/* Weekly Metrics Summary Grid — REAL ONLY */}
             <View style={styles.grid}>
               <View style={styles.gridRow}>
                 <GlassCard accent="primary" style={styles.metricCard}>
                   <Feather name="smile" size={16} color="#ffb3d9" />
                   <Text style={[styles.metricLabel, { color: colors.onSurfaceVariant }]}>Avg Mood</Text>
-                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgMood}%</Text>
+                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgMood !== null ? `${avgMood}%` : '—'}</Text>
                 </GlassCard>
 
                 <GlassCard accent="secondary" style={styles.metricCard}>
                   <Feather name="moon" size={16} color="#a2cbfd" />
                   <Text style={[styles.metricLabel, { color: colors.onSurfaceVariant }]}>Avg Sleep</Text>
-                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgSleep.toFixed(1)} hrs</Text>
+                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgSleep !== null ? `${Number(avgSleep).toFixed(1)} hrs` : '—'}</Text>
                 </GlassCard>
               </View>
 
@@ -85,25 +87,27 @@ export function WeeklyReportModal({ visible, onClose, seriesData, summaryData }:
                 <GlassCard accent="secondary" style={styles.metricCard}>
                   <Feather name="activity" size={16} color="#6ee7b7" />
                   <Text style={[styles.metricLabel, { color: colors.onSurfaceVariant }]}>Avg Activity</Text>
-                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgActivity}%</Text>
+                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgActivity !== null ? `${avgActivity}%` : '—'}</Text>
                 </GlassCard>
 
                 <GlassCard accent="primary" style={styles.metricCard}>
                   <Feather name="trending-down" size={16} color="#b59cff" />
                   <Text style={[styles.metricLabel, { color: colors.onSurfaceVariant }]}>Stress Index</Text>
-                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgStress}%</Text>
+                  <Text style={[styles.metricValue, { color: colors.onSurface }]}>{avgStress !== null ? `${avgStress}%` : '—'}</Text>
                 </GlassCard>
               </View>
             </View>
 
-            {/* Weekly AI Assessment */}
+            {/* Weekly AI Assessment — REAL ONLY */}
             <GlassCard accent="primary" style={styles.assessmentCard}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="cpu" size={16} color={colors.primary} />
                 <Text style={[styles.cardTitle, { color: colors.onSurface }]}>Weekly AI Synthesis</Text>
               </View>
               <Text style={[styles.assessmentText, { color: colors.onSurfaceVariant }]}>
-                Your stress levels remained stable this week, spiking only on Tuesday afternoon during high-interaction intervals. Your sleep duration averaged 7.2 hours, which is correlated with a 14% increase in keyboard focus. Continuing Box Breathing will help stabilize stress indices.
+                {hasReportData
+                  ? `Real 7-day averages${avgMood !== null ? ` — mood ${avgMood}` : ''}${avgSleep !== null ? `, sleep ${Number(avgSleep).toFixed(1)}h` : ''}${avgStress !== null ? `, stress ${avgStress}` : ''}. Patterns sharpen as more real snapshots accumulate.`
+                  : 'Not enough real history yet. Interact, journal, or sync sensors to generate your first real synthesis. Nothing is fabricated.'}
               </Text>
             </GlassCard>
 

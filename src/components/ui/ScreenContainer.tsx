@@ -26,7 +26,7 @@ export function ScreenContainer({
   if (!scrollable) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} onTouchStart={trackInteraction}>
-        <View style={[styles.content, contentStyle]}>{children}</View>
+        <View style={[styles.content, { backgroundColor: colors.background }, contentStyle]}>{children}</View>
       </SafeAreaView>
     );
   }
@@ -34,8 +34,10 @@ export function ScreenContainer({
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} onTouchStart={trackInteraction}>
       <ScrollView
-        contentContainerStyle={[styles.content, contentStyle]}
+        contentContainerStyle={[styles.content, contentStyle, { backgroundColor: colors.background }]}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
+        style={{ backgroundColor: colors.background }}
         refreshControl={
           onRefresh ? (
             <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primaryAccent} />

@@ -14,6 +14,7 @@ import { Feather } from '@expo/vector-icons';
 
 import { useJournals } from '@/src/hooks/useJournals';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useCalm } from '@/src/components/calm/kit';
 import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
 import { SecondaryButton } from '@/src/components/ui/SecondaryButton';
 import { GlassCard } from '@/src/components/ui/GlassCard';
@@ -36,6 +37,7 @@ const MOOD_OPTIONS = [
 
 export function JournalModal({ visible, onClose }: JournalModalProps) {
   const { colors, isDark } = useTheme();
+  const { c } = useCalm();
   const { data: entries, createEntry, deleteEntry, isLoading } = useJournals();
 
   const [content, setContent] = useState('');
@@ -81,7 +83,7 @@ export function JournalModal({ visible, onClose }: JournalModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+        <View style={[styles.modalContainer, { backgroundColor: c.surface, borderColor: c.line }]}>
           
           {/* Header */}
           <View style={styles.header}>

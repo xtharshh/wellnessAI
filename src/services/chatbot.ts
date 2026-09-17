@@ -5,6 +5,8 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+import { apiFetch } from '@/src/services/apiClient';
+
 interface MusicSuggestion {
   title: string;
   creator: string;
@@ -32,66 +34,21 @@ Important rules:
 6. Be culturally sensitive and inclusive.
 7. Always include at least one exercise or activity suggestion, even when the user feels good.`;
 
-// ─── OpenAI API Call (only for complex messages) ─────────────────────
-async function callOpenAI(
+// ─── Server AI call (OpenAI key stays server-side; 503 → local fallback) ──
+async function callServerChat(
   userMessage: string,
   history: ChatMessage[]
 ): Promise<string | null> {
-  const apiKey =
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    '';
-
-  if (!apiKey) {
-    console.warn('[Chatbot] No OPENAI_API_KEY found. Using local fallback.');
-    return null;
-  }
-
-  // Build conversation history for context (last 10 messages max)
-  const recentHistory = history.slice(-10);
-  const messages: Array<{ role: string; content: string }> = [
-    { role: 'system', content: SYSTEM_PROMPT },
-  ];
-
-  for (const msg of recentHistory) {
-    messages.push({
-      role: msg.sender === 'user' ? 'user' : 'assistant',
-      content: msg.text,
-    });
-  }
-
-  messages.push({ role: 'user', content: userMessage });
-
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const data = await apiFetch<{ reply: string }>('/api/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+      body: {
+        message: userMessage,
+        history: history.slice(-10).map((m) => ({ sender: m.sender, text: m.text })),
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages,
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
     });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.warn(`[Chatbot] OpenAI API error ${response.status} — using fallback response`);
-      return null;
-    }
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      return null;
-    }
-
-    return reply.trim();
-  } catch (error) {
+    return data.reply?.trim() || null;
+  } catch {
     return null;
   }
 }
@@ -685,15 +642,15 @@ export async function sendChatMessage(
     return buildLocalResponse(matchedCategory);
   }
 
-  // 3. Complex/ambiguous message → use OpenAI API
-  console.log('[Chatbot] No predefined match — routing to OpenAI API.');
-  const aiReply = await callOpenAI(message, history);
+  // 3. Complex/ambiguous message → use server AI (local fallback on 503)
+  console.log('[Chatbot] No predefined match — routing to server AI.');
+  const aiReply = await callServerChat(message, history);
   if (aiReply) {
     return aiReply;
   }
 
-  // 4. Final fallback if OpenAI fails
-  console.log('[Chatbot] OpenAI failed — using default local response.');
+  // 4. Final fallback if server AI is unavailable
+  console.log('[Chatbot] Server AI unavailable — using default local response.');
   await new Promise((r) => setTimeout(r, 600));
   return buildLocalResponse('default');
 }

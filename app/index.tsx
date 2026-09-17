@@ -10,11 +10,11 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import Svg, { Path, Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Svg, { Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
+import { AppLogo } from '@/src/components/ui/AppLogo';
 import { useAuthStore } from '@/src/stores/authStore';
-import { colors } from '@/src/theme/colors';
-import { typography, fonts } from '@/src/theme/typography';
+import { fonts } from '@/src/theme/typography';
 
 export default function SplashScreenRoute() {
   const router = useRouter();
@@ -47,15 +47,19 @@ export default function SplashScreenRoute() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!user) {
-        router.replace('/(auth)/login');
+        router.replace('/landing');
         return;
       }
       if (!user.privacyConsentAt) {
         router.replace('/(onboarding)/privacy');
         return;
       }
+      if (!user.onboardingComplete) {
+        router.replace('/(onboarding)/privacy');
+        return;
+      }
       router.replace('/(tabs)/dashboard');
-    }, 2800); // 2.8s display to showcase the beautiful animation flow
+    }, 2400);
 
     return () => clearTimeout(timer);
   }, [router, user]);
@@ -84,34 +88,9 @@ export default function SplashScreenRoute() {
 
       {/* Central Content */}
       <View style={styles.mainContent}>
-        {/* Animated Logo Squircle */}
-        <Animated.View style={[styles.logoCard, animatedLogoStyle]}>
-          <View style={styles.spheresContainer}>
-            {/* Back Purple Sphere */}
-            <LinearGradient
-              colors={['#9f62ff', '#491b9a']}
-              start={{ x: 0.1, y: 0.1 }}
-              end={{ x: 0.9, y: 0.9 }}
-              style={[styles.sphere, styles.spherePurple]}
-            />
-            {/* Front Green/Teal Sphere */}
-            <LinearGradient
-              colors={['#3de2b5', '#0c6e54']}
-              start={{ x: 0.1, y: 0.1 }}
-              end={{ x: 0.9, y: 0.9 }}
-              style={[styles.sphere, styles.sphereTeal]}
-            />
-            {/* Overlay Squiggly Sine Wave */}
-            <Svg height="16" width="48" viewBox="0 0 48 16" style={styles.waveSvg}>
-              <Path
-                d="M 2 8 C 10 0, 14 16, 24 8 C 34 0, 38 16, 46 8"
-                fill="none"
-                stroke="white"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-              />
-            </Svg>
-          </View>
+        {/* Animated Brand Logo */}
+        <Animated.View style={[animatedLogoStyle, styles.logoWrap]}>
+          <AppLogo size={90} />
         </Animated.View>
 
         {/* Brand Text */}
@@ -170,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   orbitContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -199,46 +178,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 10,
   },
-  logoCard: {
-    width: 90,
-    height: 90,
-    borderRadius: 24,
-    backgroundColor: '#161129',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
+  logoWrap: {
     marginBottom: 24,
-  },
-  spheresContainer: {
-    width: 52,
-    height: 52,
-    position: 'relative',
-  },
-  sphere: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    position: 'absolute',
-  },
-  spherePurple: {
-    top: 6,
-    left: 4,
-  },
-  sphereTeal: {
-    bottom: 6,
-    right: 4,
-  },
-  waveSvg: {
-    position: 'absolute',
-    top: 18,
-    left: 2,
-    zIndex: 10,
   },
   textContainer: {
     alignItems: 'center',

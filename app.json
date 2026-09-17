@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mcpstich",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -24,8 +24,7 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE"
-      ],
-      "package": "com.anonymous.mindtraceai"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +41,11 @@
           "resizeMode": "contain",
           "backgroundColor": "#111318"
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-font",
+      "expo-status-bar",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true

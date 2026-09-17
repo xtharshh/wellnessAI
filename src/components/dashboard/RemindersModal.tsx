@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useTheme } from '@/src/hooks/useTheme';
+import { useCalm } from '@/src/components/calm/kit';
 import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
 import { radius, spacing } from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
@@ -25,6 +26,7 @@ interface RemindersModalProps {
 
 export function RemindersModal({ visible, onClose }: RemindersModalProps) {
   const { colors } = useTheme();
+  const { c } = useCalm();
 
   const [breaksEnabled, setBreaksEnabled] = useState(true);
   const [hydrationEnabled, setHydrationEnabled] = useState(true);
@@ -95,7 +97,7 @@ export function RemindersModal({ visible, onClose }: RemindersModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+        <View style={[styles.modalContainer, { backgroundColor: c.surface, borderColor: c.line }]}>
           
           {/* Header */}
           <View style={styles.header}>

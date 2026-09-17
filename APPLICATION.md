@@ -13,13 +13,13 @@ for the original phased roadmap.
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Expo SDK 56 (React Native 0.85, React 19) |
+| Framework | Expo SDK 57 (React Native 0.86, React 19) |
 | Routing | Expo Router (file-based, typed routes) |
 | Language | TypeScript |
 | State | Zustand (`authStore`) + TanStack Query (`AppProviders`) |
-| Backend | Supabase (Postgres + Auth + Realtime) |
-| Local persistence | AsyncStorage (auth/session, theme) |
-| Fonts / icons | `@expo-google-fonts/inter`, `@expo/vector-icons` (Feather) |
+| Backend | Vercel serverless (`api/`) + Neon Postgres (custom scrypt/session auth) |
+| Local persistence | AsyncStorage (session token, theme) |
+| Fonts / icons | Bundled Inter (`assets/fonts`), `@expo/vector-icons` (Feather) |
 | Animation | React Native Reanimated + Worklets |
 | Charts | (trends screen — see `src/hooks/useTrends.ts`) |
 | Native extension | Custom Expo module `android-wellbeing` (Android only) |
@@ -104,22 +104,15 @@ modules/android-wellbeing/  Custom Expo native module (Android only)
 `ensureSnapshots()` (in `wellness.ts`) seeds a single zero-baseline snapshot for new
 users in Supabase rather than generating fake history.
 
-## Auth & realtime
+## Auth & sync
 
 - `authStore` (Zustand) drives the whole app's auth lifecycle: hydration on launch,
   sign in/up/out, privacy consent, onboarding completion, theme persistence.
-- On successful login/hydration, `bootstrapUserData()` ensures wellness snapshots exist
-  and triggers recommendation generation for the user.
-- `useRealtimeSync` (used in the root layout) keeps Supabase realtime subscriptions
-  in sync with local state while the app is active.
-- Session storage: AsyncStorage on native, browser storage on web (handled by
-  `Platform.OS` checks in `supabase.ts`).
-
-## Demo account
-
-- Email: `demo@mindtrace.ai`
-- Password: `demo1234`
-(Tap **Try Demo Account** on the login screen.)
+  Sessions are opaque tokens (SHA-256 hashed in Neon), stored in AsyncStorage.
+- Backend is Vercel serverless (`api/`) + Neon Postgres — no client-side DB keys.
+  OpenAI keys stay server-side (`/api/chat`, `/api/doctor-chat`, recommendation generation).
+- `useRealtimeSync` (used in the root layout) polls dashboard queries every 60s
+  while the app is foregrounded.
 
 ## Theming
 

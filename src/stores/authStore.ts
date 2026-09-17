@@ -4,7 +4,6 @@ import * as authService from '@/src/services/auth';
 import * as recommendationsService from '@/src/services/recommendations';
 import { ensureSnapshots } from '@/src/services/wellness';
 import { UserProfile } from '@/src/types/wellness';
-import { supabase } from '@/src/services/supabase';
 
 interface AuthState {
   user: UserProfile | null;
@@ -61,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     let user = null;
     let theme: 'dark' | 'light' = 'light';
     try {
-      user = await authService.getCurrentUser();
+      user = await withTimeout(authService.getCurrentUser(), 5000);
       if (user) {
         try {
           await bootstrapUserData(user.id);
@@ -152,10 +151,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   updateEmail: async (email) => {
     const { user } = get();
     if (!user) return;
-    const { error } = await supabase.auth.updateUser({ email });
-    if (error) throw error;
-    // We update the local state email, but note that Supabase might require confirmation
-    set({ user: { ...user, email } });
+    // Server validates uniqueness; session token stays valid.
+    const updated = await authService.updateUser(user.id, { email });
+    set({ user: updated });
   },
 
   updateHealthProfile: async (profileData) => {

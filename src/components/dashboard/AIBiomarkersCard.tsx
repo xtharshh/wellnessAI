@@ -6,12 +6,24 @@ import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { fonts } from '@/src/theme/typography';
 
-export function AIBiomarkersCard({ behaviorAnalysis }: { behaviorAnalysis: any }) {
+export function AIBiomarkersCard({ behaviorAnalysis, rawSignals }: { behaviorAnalysis: any; rawSignals?: any }) {
   const { isDark } = useTheme();
   const router = useRouter();
 
   const textColor = isDark ? '#f5f5f7' : '#1a1a2e';
   const textMuted = isDark ? '#8f8f9e' : '#6b6b7f';
+
+  const subtitle = rawSignals
+    ? [
+        rawSignals.avgKeyInterval !== null && rawSignals.avgKeyInterval !== undefined ? `${rawSignals.avgKeyInterval}ms cadence` : null,
+        rawSignals.backspaceRatio !== null && rawSignals.backspaceRatio !== undefined ? `${rawSignals.backspaceRatio}% corrections` : null,
+        rawSignals.motionMagnitude !== null && rawSignals.motionMagnitude !== undefined ? `${rawSignals.motionMagnitude}g` : null,
+      ]
+        .filter(Boolean)
+        .join(' • ') || 'No live signal yet — interact to generate'
+    : behaviorAnalysis
+      ? 'Live biomarkers available — tap for raw feed'
+      : 'No live signal yet — interact to generate';
 
   return (
     <Pressable 
@@ -30,7 +42,7 @@ export function AIBiomarkersCard({ behaviorAnalysis }: { behaviorAnalysis: any }
           <View style={styles.textCol}>
             <Text style={[styles.title, { color: textColor }]}>AI Biomarkers</Text>
             <Text style={[styles.subtitle, { color: textMuted }]} numberOfLines={1}>
-              Typing cadence 340ms avg - Backspace ratio 8% - G-force 0.4
+              {subtitle}
             </Text>
           </View>
 

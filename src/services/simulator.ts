@@ -1,48 +1,47 @@
 import { initTelemetry, stopTelemetry, getLiveMetrics } from '@/src/services/realAnalytics';
-import { supabase } from '@/src/services/supabase';
+import { apiFetch } from '@/src/services/apiClient';
 
 let simulationInterval: any = null;
 
 export function startAnalyticsSimulation(userId: string) {
+  void userId;
   if (simulationInterval) {
     clearInterval(simulationInterval);
   }
 
-  console.log('Starting real-time mobile analytics sync for user:', userId);
+  console.log('[simulator] Starting real-time mobile analytics sync');
 
-  // Initialize event listeners / accelerometer
-  initTelemetry();
+  try {
+    initTelemetry();
+  } catch (err) {
+    console.error('[simulator] Failed to initialize telemetry:', err);
+    return;
+  }
 
-  // Ingest real analytics measurements every 15 seconds
+  // Ingest REAL analytics measurements every 60 seconds (only when sufficient signal)
   simulationInterval = setInterval(async () => {
-    const metrics = await getLiveMetrics();
+    try {
+      const metrics = await getLiveMetrics();
 
-    const dbRow = {
-      user_id: userId,
-      recorded_at: new Date().toISOString(),
-      mood_score: metrics.moodScore,
-      sleep_hours: metrics.sleepHours,
-      activity_level: metrics.activityLevel,
-      stress_index: metrics.stressIndex,
-      risk_level: metrics.riskLevel,
-      metadata: {
-        source: 'real_device_sensors',
-        telemetry: metrics.rawSignals,
-      },
-    };
+      if (!metrics.hasSufficientData) return;
+      if (metrics.moodScore === null || metrics.stressIndex === null) return;
+      if (metrics.sleepHours === null || metrics.activityLevel === null) return;
 
-    const { data, error } = await supabase
-      .from('wellness_snapshots')
-      .insert([dbRow])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Failed to sync real device analytics snapshot:', error);
-    } else {
-      console.log('Successfully synced real device analytics snapshot:', data.id);
+      await apiFetch('/api/snapshots', {
+        method: 'POST',
+        body: {
+          moodScore: metrics.moodScore,
+          sleepHours: metrics.sleepHours,
+          activityLevel: metrics.activityLevel,
+          stressIndex: metrics.stressIndex,
+          metadata: { source: 'real_device_sensors', telemetry: metrics.rawSignals },
+        },
+      });
+      console.log('[simulator] Synced real device analytics snapshot');
+    } catch (err) {
+      console.error('Error during analytics sync:', err);
     }
-  }, 15000);
+  }, 60000);
 }
 
 export function stopAnalyticsSimulation() {

@@ -63,3 +63,6 @@ yarn-error.*
 # APK files
 *.apk
 .*apk
+
+# Local API server build output
+scripts/.apibuild/

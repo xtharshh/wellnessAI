@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase';
+import { apiFetch } from '@/src/services/apiClient';
 
 export interface JournalEntry {
   id: string;
@@ -10,25 +10,13 @@ export interface JournalEntry {
 }
 
 export async function getJournals(userId: string): Promise<JournalEntry[]> {
-  const { data, error } = await supabase
-    .from('journals')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to fetch journal entries:', error);
+  try {
+    const data = await apiFetch<{ journals: Omit<JournalEntry, 'userId'>[] }>('/api/journals');
+    return (data.journals || []).map((row) => ({ ...row, userId }));
+  } catch (e) {
+    console.error('Failed to fetch journal entries:', e);
     return [];
   }
-
-  return (data || []).map((row) => ({
-    id: row.id,
-    userId: row.user_id,
-    content: row.content,
-    moodScore: row.mood_score,
-    moodTag: row.mood_tag,
-    createdAt: row.created_at,
-  }));
 }
 
 export async function createJournalEntry(
@@ -37,43 +25,14 @@ export async function createJournalEntry(
   moodScore: number,
   moodTag: string
 ): Promise<JournalEntry | null> {
-  const { data, error } = await supabase
-    .from('journals')
-    .insert([
-      {
-        user_id: userId,
-        content,
-        mood_score: moodScore,
-        mood_tag: moodTag,
-      },
-    ])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Failed to create journal entry:', error);
-    throw new Error(error.message);
-  }
-
-  return {
-    id: data.id,
-    userId: data.user_id,
-    content: data.content,
-    moodScore: data.mood_score,
-    moodTag: data.mood_tag,
-    createdAt: data.created_at,
-  };
+  const data = await apiFetch<{ journal: Omit<JournalEntry, 'userId'> }>('/api/journals', {
+    method: 'POST',
+    body: { content, moodScore, moodTag },
+  });
+  return { ...data.journal, userId };
 }
 
 export async function deleteJournalEntry(userId: string, id: string): Promise<void> {
-  const { error } = await supabase
-    .from('journals')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error('Failed to delete journal entry:', error);
-    throw new Error(error.message);
-  }
+  void userId;
+  await apiFetch(`/api/journals/${id}`, { method: 'DELETE' });
 }

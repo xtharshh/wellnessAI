@@ -18,6 +18,7 @@ export function useWellnessSummary() {
       ]);
       return {
         summary,
+        hasData: !!summary && snapshots.length > 0,
         liveMetrics,
         series: {
           mood: getMetricSeries(snapshots, 'moodScore'),

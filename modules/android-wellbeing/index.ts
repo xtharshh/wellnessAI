@@ -1,5 +1,6 @@
-import { requireNativeModule } from 'expo';
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { requireNativeModule } from 'expo';
 
 export interface WellbeingMetrics {
   screenTimeMinutes: number;
@@ -7,47 +8,80 @@ export interface WellbeingMetrics {
   sleepHours: number;
 }
 
-let AndroidWellbeing: any = null;
+const EMPTY: WellbeingMetrics = {
+  screenTimeMinutes: 0,
+  unlockCount: 0,
+  sleepHours: 0,
+};
 
-if (Platform.OS === 'android') {
+// Lazy-loaded: never require native code at import time, so a missing
+// module (Expo Go / web / iOS / stale dev build) can't break the JS bundle.
+let cachedModule: any | null | undefined = undefined;
+
+function getModule(): any | null {
+  if (cachedModule !== undefined) return cachedModule;
+  cachedModule = null;
+
+  if (Platform.OS !== 'android') return cachedModule;
+
+  // Expo Go (StoreClient) cannot load custom native code — stay silent here,
+  // callers already render "no live signal" empty states in this case.
   try {
-    AndroidWellbeing = requireNativeModule('AndroidWellbeing');
-  } catch (e) {
-    console.warn('AndroidWellbeing native module is not available. Ensure you have run expo prebuild.');
+    if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+      return cachedModule;
+    }
+  } catch {
+    // If constants are unavailable, fall through and try the require.
   }
+
+  try {
+    cachedModule = requireNativeModule('AndroidWellbeing');
+  } catch {
+    cachedModule = null;
+    if (__DEV__) {
+      console.warn(
+        '[AndroidWellbeing] Native module not found. ' +
+          'Rebuild your dev client with `npx expo run:android` (Expo Go cannot load custom native code).'
+      );
+    }
+  }
+  return cachedModule;
+}
+
+/** True only when the native module is loaded AND the OS permission is granted. */
+export function isModuleAvailable(): boolean {
+  return getModule() !== null;
 }
 
 export function hasUsageStatsPermission(): boolean {
-  if (Platform.OS !== 'android' || !AndroidWellbeing) return false;
+  const mod = getModule();
+  if (!mod) return false;
   try {
-    return AndroidWellbeing.hasUsageStatsPermission();
+    return mod.hasUsageStatsPermission();
   } catch {
     return false;
   }
 }
 
 export function requestUsageStatsPermission(): void {
-  if (Platform.OS !== 'android' || !AndroidWellbeing) return;
+  const mod = getModule();
+  if (!mod) return;
   try {
-    AndroidWellbeing.requestUsageStatsPermission();
+    mod.requestUsageStatsPermission();
   } catch {}
 }
 
 export function getSystemWellbeingMetrics(): WellbeingMetrics {
-  if (Platform.OS !== 'android' || !AndroidWellbeing) {
-    return {
-      screenTimeMinutes: 0,
-      unlockCount: 0,
-      sleepHours: 0,
-    };
-  }
+  const mod = getModule();
+  if (!mod) return { ...EMPTY };
   try {
-    return AndroidWellbeing.getSystemWellbeingMetrics();
-  } catch {
+    const raw = mod.getSystemWellbeingMetrics();
     return {
-      screenTimeMinutes: 0,
-      unlockCount: 0,
-      sleepHours: 0,
+      screenTimeMinutes: Number(raw?.screenTimeMinutes) || 0,
+      unlockCount: Number(raw?.unlockCount) || 0,
+      sleepHours: Number(raw?.sleepHours) || 0,
     };
+  } catch {
+    return { ...EMPTY };
   }
 }

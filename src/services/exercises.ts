@@ -1,57 +1,30 @@
-import { supabase } from '@/src/services/supabase';
-import { Exercise, Recommendation } from '@/src/types/wellness';
-
-function mapDbRowToExercise(row: any): Exercise {
-  return {
-    id: row.id,
-    name: row.name,
-    duration: row.duration,
-    steps: row.steps || [],
-    explanation: row.explanation,
-    category: row.category,
-    custom: row.custom,
-    createdAt: row.created_at,
-  };
-}
+import { Exercise } from '@/src/types/wellness';
+import { apiFetch } from '@/src/services/apiClient';
 
 export async function getExercises(userId: string): Promise<Exercise[]> {
-  const { data, error } = await supabase
-    .from('exercises')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to fetch exercises:', error);
+  void userId;
+  try {
+    const data = await apiFetch<{ exercises: Exercise[] }>('/api/exercises');
+    return data.exercises || [];
+  } catch (e) {
+    console.error('Failed to fetch exercises:', e);
     return [];
   }
-
-  return (data || []).map(mapDbRowToExercise);
 }
 
 export async function createExercise(
   userId: string,
   exercise: Omit<Exercise, 'id' | 'createdAt' | 'custom'> & { custom?: boolean }
 ): Promise<Exercise> {
-  const { data, error } = await supabase
-    .from('exercises')
-    .insert({
-      user_id: userId,
-      name: exercise.name,
-      duration: exercise.duration,
-      steps: exercise.steps,
-      explanation: exercise.explanation,
-      category: exercise.category,
-      custom: exercise.custom ?? true,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create exercise: ${error.message}`);
+  void userId;
+  const data = await apiFetch<{ exercises: Exercise[] }>('/api/exercises', {
+    method: 'POST',
+    body: exercise,
+  });
+  if (!data.exercises || data.exercises.length === 0) {
+    throw new Error('Failed to create exercise.');
   }
-
-  return mapDbRowToExercise(data);
+  return data.exercises[0];
 }
 
 export async function updateExercise(
@@ -59,48 +32,30 @@ export async function updateExercise(
   id: string,
   exercise: Partial<Omit<Exercise, 'id' | 'createdAt'>>
 ): Promise<Exercise> {
-  const { data, error } = await supabase
-    .from('exercises')
-    .update({
-      name: exercise.name,
-      duration: exercise.duration,
-      steps: exercise.steps,
-      explanation: exercise.explanation,
-      category: exercise.category,
-      custom: exercise.custom,
-    })
-    .eq('id', id)
-    .eq('user_id', userId)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update exercise: ${error.message}`);
-  }
-
-  return mapDbRowToExercise(data);
+  void userId;
+  const data = await apiFetch<{ exercise: Exercise }>(`/api/exercises/${id}`, {
+    method: 'PATCH',
+    body: exercise,
+  });
+  return data.exercise;
 }
 
 export async function deleteExercise(userId: string, id: string): Promise<void> {
-  const { error } = await supabase
-    .from('exercises')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
-
-  if (error) {
-    throw new Error(`Failed to delete exercise: ${error.message}`);
-  }
+  void userId;
+  await apiFetch(`/api/exercises/${id}`, { method: 'DELETE' });
 }
 
-export async function saveAISuggestedExercises(userId: string, recommendations: Recommendation[]): Promise<void> {
-  const exercisesToSave: Omit<Exercise, 'id' | 'createdAt' | 'custom'>[] = [];
-  
+export async function saveAISuggestedExercises(
+  userId: string,
+  recommendations: { body: string; category: string }[]
+): Promise<void> {
+  const toSave: { name: string; duration: string; steps: string[]; explanation: string; category: string }[] = [];
+
   for (const rec of recommendations) {
     try {
       const details = JSON.parse(rec.body);
       if (details.exercise) {
-        exercisesToSave.push({
+        toSave.push({
           name: details.exercise.name,
           duration: details.exercise.duration,
           steps: details.exercise.steps,
@@ -109,32 +64,16 @@ export async function saveAISuggestedExercises(userId: string, recommendations: 
         });
       }
     } catch {
-      // standard plain text recommendation, skip
+      // plain-text recommendation, skip
     }
   }
 
-  if (exercisesToSave.length === 0) return;
+  if (toSave.length === 0) return;
 
-  const existing = await getExercises(userId);
-  const existingNames = new Set(existing.map((e) => e.name.toLowerCase().trim()));
-
-  const newExercises = exercisesToSave.filter((e) => !existingNames.has(e.name.toLowerCase().trim()));
-
-  if (newExercises.length === 0) return;
-
-  const dbRows = newExercises.map((e) => ({
-    user_id: userId,
-    name: e.name,
-    duration: e.duration,
-    steps: e.steps,
-    explanation: e.explanation,
-    category: e.category,
-    custom: false,
-  }));
-
-  const { error } = await supabase.from('exercises').insert(dbRows);
-  if (error) {
-    console.error('Failed to save AI-suggested exercises:', error);
+  try {
+    await apiFetch('/api/exercises', { method: 'POST', body: { items: toSave } });
+  } catch (e) {
+    console.error('Failed to save AI-suggested exercises:', e);
   }
 }
 
@@ -180,25 +119,9 @@ export async function setupPerfectPlanExercises(userId: string): Promise<void> {
     }
   ];
 
-  const existing = await getExercises(userId);
-  const existingNames = new Set(existing.map((e) => e.name.toLowerCase().trim()));
-
-  const newExercises = planExercises.filter((e) => !existingNames.has(e.name.toLowerCase().trim()));
-
-  if (newExercises.length === 0) return;
-
-  const dbRows = newExercises.map((e) => ({
-    user_id: userId,
-    name: e.name,
-    duration: e.duration,
-    steps: e.steps,
-    explanation: e.explanation,
-    category: e.category,
-    custom: e.custom,
-  }));
-
-  const { error } = await supabase.from('exercises').insert(dbRows);
-  if (error) {
-    throw new Error(`Failed to configure perfect plan: ${error.message}`);
+  try {
+    await apiFetch('/api/exercises', { method: 'POST', body: { items: planExercises } });
+  } catch (e) {
+    throw new Error(e instanceof Error ? e.message : 'Failed to configure perfect plan.');
   }
 }

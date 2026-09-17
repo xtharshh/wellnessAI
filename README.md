@@ -21,7 +21,6 @@ Mobile wellness app built from the Google Stitch **MindTrace AI Wellness System*
 npm install
 npm run web
 ```
-
 Other platforms:
 
 ```bash
@@ -30,12 +29,19 @@ npm run ios
 npm start
 ```
 
-## Demo account
+## Backend (Neon + Vercel)
 
-On the login screen, tap **Try Demo Account** or sign in with:
+Production backend is serverless: `api/` routes on Vercel + Neon Postgres.
 
-- Email: `demo@mindtrace.ai`
-- Password: `demo1234`
+1. Create a Neon project, then run the schema:
+  `DATABASE_URL='<pooled-connection-string>' node scripts/migrate-neon.mjs`
+  (or apply `NEON_SCHEMA.sql` in the Neon SQL editor).
+2. `vercel link`, then add env vars in the Vercel dashboard:
+  `NEON_DATABASE_URL` (pooled, server-only), `OPENAI_API_KEY` (server-only),
+  `EXPO_PUBLIC_API_URL` (your deployment URL), optional `RESEND_API_KEY`.
+3. `vercel --prod` — builds `npx expo export --platform web` (`dist/`) plus `api/` functions.
+
+Local API dev: `vercel dev` (proxies `/api/*`), or set `EXPO_PUBLIC_API_URL` to the deployed URL.
 
 ## Project structure
 
@@ -46,9 +52,8 @@ On the login screen, tap **Try Demo Account** or sign in with:
 - `src/stores/` — Zustand auth store
 - `implementation-plan.md` — Full phased roadmap
 
-## Next steps (from plan)
+## Next steps
 
-1. Connect Supabase for cloud auth and sync
-2. Replace rule-based AI with OpenAI / Gemini Edge Function
-3. Export Stitch HTML assets for pixel-perfect polish
-4. EAS Build for iOS / Android distribution
+1. Add clinicians to the Neon `doctors` table to populate the Counsellor directory
+2. Set `RESEND_API_KEY` to enable forgot-password emails
+3. EAS Build for iOS / Android distribution (dev builds required for the wellbeing module)
