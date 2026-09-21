@@ -1,4 +1,4 @@
-// Local API server for LAN device testing: compiles api/ and serves it on
+// Local API server for LAN device testing: compiles server/ and serves it on
 // 0.0.0.0:3000 so physical devices on the same Wi-Fi can reach it.
 // Usage: node scripts/serve-api.cjs [--port 3000] [--no-build]
 // Env comes from the repo .env file (NEON_DATABASE_URL, OPENAI_API_KEY, ...).
@@ -46,7 +46,7 @@ function build() {
     return;
   }
   console.log('[api] compiling routes...');
-  const files = collectTs(path.join(ROOT, 'api')).join(' ');
+  const files = collectTs(path.join(ROOT, 'server')).join(' ');
   execSync(
     `npx tsc --ignoreConfig --target es2020 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --strict false --ignoreDeprecations 6.0 --outDir "${BUILD}" ${files}`,
     { cwd: ROOT, stdio: 'inherit' }
