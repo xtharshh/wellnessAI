@@ -210,6 +210,64 @@ export function GhostButton({
   );
 }
 
+function GoogleMark() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24">
+      <Path
+        d="M22.6 12.3c0-.8-.1-1.5-.2-2.3H12v4.5h6c-.3 1.4-1.2 2.6-2.5 3.4v2.8h4c2.4-2.2 3.7-5.4 3.1-8.4z"
+        fill="#4285F4"
+      />
+      <Path
+        d="M12 23c3.1 0 5.7-1 7.6-2.8l-4-2.8c-1 .7-2.4 1.1-3.6 1.1-2.8 0-5.2-1.9-6-4.5H1.9v2.9C3.8 20.5 7.6 23 12 23z"
+        fill="#34A853"
+      />
+      <Path
+        d="M5.9 14c-.2-.7-.4-1.3-.4-2s.1-1.3.4-2V7.1H1.9C1.3 8.3 1 9.6 1 11s.3 3.2.9 4.4L5.9 14z"
+        fill="#FBBC05"
+      />
+      <Path
+        d="M12 5.4c1.5 0 2.9.5 4 1.6l3.5-3.5C17.4 1.3 14.8 0 12 0 7.6 0 3.8 2.5 1.9 6.1l4 3C6.8 7.3 9.2 5.4 12 5.4z"
+        fill="#EA4335"
+      />
+    </Svg>
+  );
+}
+
+export function GoogleButton({
+  label,
+  onPress,
+  loading,
+}: {
+  label: string;
+  onPress: () => void;
+  loading?: boolean;
+}) {
+  const { c } = useCalm();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!!loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.ghostBtn,
+        {
+          borderColor: c.line,
+          backgroundColor: c.surface,
+          opacity: pressed || loading ? 0.75 : 1,
+          flexDirection: 'row',
+          gap: 10,
+        },
+      ]}
+    >
+      <GoogleMark />
+      <Text style={[styles.ghostBtnText, { color: c.ink }]}>
+        {loading ? 'Connecting…' : label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function PoweredByAI() {
   const { c } = useCalm();
   return (
@@ -329,18 +387,21 @@ export function StatTile({
   label,
   icon,
   tint,
+  art,
 }: {
   value: string;
   label: string;
   icon: React.ComponentProps<typeof Feather>['name'];
   tint: TileTint;
+  /** Rich SVG motif — renders in place of the feather icon when provided. */
+  art?: React.ReactNode;
 }) {
   const { c } = useCalm();
   const t = tileColors(c, tint);
   return (
     <View style={[styles.tile, { backgroundColor: t.bg }]}>
       <View style={styles.tileIcon}>
-        <Feather name={icon} size={20} color={t.ink} />
+        {art ?? <Feather name={icon} size={20} color={t.ink} />}
       </View>
       <Text style={[styles.tileValue, { color: c.ink }]}>{value}</Text>
       <Text style={[styles.tileLabel, { color: c.muted }]}>{label}</Text>

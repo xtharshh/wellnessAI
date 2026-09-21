@@ -1,4 +1,4 @@
-# MindTrace AI — Application Overview
+# Wellness AI — Application Overview
 
 A mobile-first wellness app that passively monitors behavioral and mental-health
 signals (sleep, mood, activity, stress) and surfaces them through an AI-driven

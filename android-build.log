@@ -1,0 +1,1109 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:processResources NO-SOURCE
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:jar UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:compileKotlin UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:compileJava NO-SOURCE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:classes UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:jar UP-TO-DATE
+The Daemon will expire after the build after running out of JVM Metaspace.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
+These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
+The currently configured max heap space is '2 GiB' and the configured max metaspace is '512 MiB'.
+For more information on how to set these values, please refer to https://docs.gradle.org/9.3.1/userguide/build_environment.html#sec:configuring_jvm_memory in the Gradle documentation.
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.
+Daemon will be stopped at the end of the build after running out of JVM Metaspace
+> Task :expo-gradle-plugin:expo-autolinking-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-module-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-module-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :expo-module-gradle-plugin:processResources UP-TO-DATE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:compileKotlin UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:compileKotlin UP-TO-DATE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:compileJava NO-SOURCE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:pluginDescriptors UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:compileJava NO-SOURCE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:processResources UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:processResources UP-TO-DATE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:classes UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :expo-gradle-plugin:expo-autolinking-plugin:jar UP-TO-DATE
+> Task :expo-gradle-plugin:expo-max-sdk-override-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+> Task :expo-module-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :expo-module-gradle-plugin:compileJava NO-SOURCE
+> Task :expo-module-gradle-plugin:classes UP-TO-DATE
+> Task :expo-module-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+[32m[ExpoRootProject][0m Using the following versions:
+  - buildTools:  [32m36.0.0[0m
+  - minSdk:      [32m26[0m
+  - compileSdk:  [32m36[0m
+  - targetSdk:   [32m36[0m
+  - ndk:         [32m27.1.12297006[0m
+  - kotlin:      [32m2.1.20[0m
+  - ksp:         [32m2.1.20-2.0.1[0m
+
+> Configure project :app
+ ??  [33mApplying gradle plugin[0m '[32mexpo-max-sdk-override-plugin[0m'
+  [expo-max-sdk-override-plugin] This plugin will find all permissions declared with `android:maxSdkVersion`. If there exists a declaration with the `android:maxSdkVersion` annotation and another one without, the plugin will remove the annotation from the final merged manifest. In order to see a log with the changes run a clean build of the app.
+
+> Configure project :expo
+
+Using expo modules
+  - [32mexpo-log-box[0m (57.0.4)
+  - [32mandroid-wellbeing[0m (unspecified)
+  - [32mexpo-constants[0m (57.0.19)
+
+> Configure project :expo-modules-core
+Linking react-native-worklets native libs into expo-modules-core build tasks
+task ':react-native-worklets:mergeDebugNativeLibs'
+task ':react-native-worklets:mergeReleaseNativeLibs'
+
+> Configure project :expo
+  - [32mexpo-modules-core[0m (57.0.18)
+  - [32mreact-native-health-connect-expo[0m (4.1.3)
+  - [33m[?][0m [32mexpo-dom-webview[0m (57.0.1)
+  - [33m[?][0m [32mexpo-ui[0m (57.0.19)
+  - [33m[?][0m [32mexpo-application[0m (57.0.3)
+  - [33m[?][0m [32mexpo-asset[0m (57.0.18)
+  - [33m[?][0m [32mexpo-audio[0m (57.0.5)
+  - [33m[?][0m [32mexpo-blur[0m (57.0.3)
+  - [33m[?][0m [32mexpo-crypto[0m (57.0.3)
+  - [33m[?][0m [32mexpo-file-system[0m (57.0.7)
+  - [33m[?][0m [32mexpo-font[0m (57.0.4)
+  - [33m[?][0m [32mexpo-haptics[0m (57.0.3)
+  - [33m[?][0m [32mexpo-image[0m (57.0.5)
+  - [33m[?][0m [32mexpo-image-loader[0m (57.0.1)
+  - [33m[?][0m [32mexpo-image-picker[0m (57.0.19)
+  - [33m[?][0m [32mexpo-keep-awake[0m (57.0.2)
+  - [33m[?][0m [32mexpo-linear-gradient[0m (57.0.2)
+  - [33m[?][0m [32mexpo-linking[0m (57.0.10)
+  - [33m[?][0m [32mexpo-notifications[0m (57.0.20)
+  - [33m[?][0m [32mexpo-router[0m (57.0.22)
+  - [33m[?][0m [32mexpo-sensors[0m (57.0.3)
+  - [33m[?][0m [32mexpo-splash-screen[0m (57.0.9)
+  - [33m[?][0m [32mexpo-status-bar[0m (57.0.1)
+  - [33m[?][0m [32mexpo-web-browser[0m (57.0.3)
+
+
+> Task :expo-log-box:preBuild UP-TO-DATE
+> Task :android-wellbeing:preBuild UP-TO-DATE
+> Task :android-wellbeing:preReleaseBuild UP-TO-DATE
+> Task :expo-modules-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-modules-core:preBuild UP-TO-DATE
+> Task :react-native-health-connect-expo:preBuild UP-TO-DATE
+> Task :expo-modules-core:preReleaseBuild UP-TO-DATE
+> Task :react-native-masked-view_masked-view:preBuild UP-TO-DATE
+> Task :react-native-worklets:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo:generatePackagesList
+> Task :expo:preBuild
+> Task :expo:preReleaseBuild
+> Task :expo-modules-core:generateReleaseBuildConfig
+> Task :expo-modules-core:generateReleaseResValues
+> Task :android-wellbeing:mergeReleaseJniLibFolders
+> Task :expo:mergeReleaseJniLibFolders
+> Task :app:generateAutolinkingNewArchitectureFiles
+> Task :react-native-reanimated:assertMinimalReactNativeVersionTask
+> Task :android-wellbeing:mergeReleaseNativeLibs NO-SOURCE
+> Task :expo:mergeReleaseNativeLibs NO-SOURCE
+> Task :android-wellbeing:stripReleaseDebugSymbols NO-SOURCE
+> Task :expo:copyReleaseJniLibsProjectOnly
+> Task :expo-modules-core:generateReleaseResources
+> Task :android-wellbeing:copyReleaseJniLibsProjectAndLocalJars
+> Task :expo-log-box:preReleaseBuild UP-TO-DATE
+> Task :app:generateAutolinkingPackageList
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :android-wellbeing:generateReleaseResValues
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :android-wellbeing:extractDeepLinksForAarRelease
+> Task :android-wellbeing:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-log-box:mergeReleaseJniLibFolders
+> Task :react-native-reanimated:assertWorkletsVersionTask
+> Task :expo-log-box:mergeReleaseNativeLibs NO-SOURCE
+> Task :app:generateReactNativeEntryPoint
+> Task :react-native-health-connect-expo:preReleaseBuild UP-TO-DATE
+> Task :expo-log-box:copyReleaseJniLibsProjectOnly
+> Task :android-wellbeing:generateReleaseBuildConfig
+> Task :react-native-masked-view_masked-view:preReleaseBuild UP-TO-DATE
+> Task :react-native-health-connect-expo:mergeReleaseJniLibFolders
+> Task :react-native-health-connect-expo:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-masked-view_masked-view:mergeReleaseJniLibFolders
+> Task :react-native-masked-view_masked-view:mergeReleaseNativeLibs NO-SOURCE
+> Task :android-wellbeing:generateReleaseResources
+> Task :react-native-health-connect-expo:copyReleaseJniLibsProjectOnly
+> Task :expo:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-modules-core:packageReleaseResources
+> Task :react-native-masked-view_masked-view:copyReleaseJniLibsProjectOnly
+> Task :expo-log-box:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo:generateReleaseBuildConfig
+> Task :react-native-worklets:assertMinimalReactNativeVersionTask
+> Task :expo:generateReleaseResValues
+> Task :android-wellbeing:packageReleaseResources
+
+> Task :expo-constants:createExpoConfig
+env: load .env
+env: export EXPO_PUBLIC_API_URL NEON_DATABASE_URL OPENAI_API_KEY
+
+> Task :expo-log-box:generateReleaseBuildConfig
+> Task :expo-log-box:generateReleaseResValues
+> Task :expo:generateReleaseResources
+> Task :expo-log-box:generateReleaseResources
+> Task :expo:packageReleaseResources
+> Task :expo-constants:preBuild
+> Task :expo-constants:preReleaseBuild
+> Task :expo-constants:mergeReleaseJniLibFolders
+> Task :expo-constants:mergeReleaseNativeLibs NO-SOURCE
+> Task :expo-modules-core:javaPreCompileRelease
+> Task :expo-log-box:packageReleaseResources
+> Task :expo:parseReleaseLocalResources
+> Task :android-wellbeing:parseReleaseLocalResources
+> Task :expo-modules-core:parseReleaseLocalResources
+> Task :android-wellbeing:mergeReleaseShaders
+> Task :expo-constants:copyReleaseJniLibsProjectOnly
+> Task :expo-constants:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :expo-log-box:parseReleaseLocalResources
+> Task :android-wellbeing:compileReleaseShaders NO-SOURCE
+> Task :android-wellbeing:generateReleaseAssets UP-TO-DATE
+> Task :expo-modules-core:compileReleaseLibraryResources
+> Task :android-wellbeing:mergeReleaseAssets
+> Task :expo-constants:generateReleaseBuildConfig
+> Task :android-wellbeing:javaPreCompileRelease
+> Task :expo-constants:generateReleaseResValues
+> Task :expo:generateReleaseRFile
+> Task :android-wellbeing:generateReleaseRFile
+> Task :android-wellbeing:prepareLintJarForPublish
+> Task :expo-modules-core:mergeReleaseJniLibFolders
+> Task :react-native-health-connect-expo:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :android-wellbeing:prepareReleaseArtProfile
+> Task :expo-constants:generateReleaseResources
+> Task :react-native-health-connect-expo:generateReleaseBuildConfig
+> Task :expo-modules-core:generateReleaseRFile
+> Task :react-native-health-connect-expo:generateReleaseResValues
+> Task :expo-log-box:javaPreCompileRelease
+> Task :expo-log-box:generateReleaseRFile
+> Task :expo:javaPreCompileRelease
+> Task :react-native-health-connect-expo:generateReleaseResources
+> Task :react-native-masked-view_masked-view:generateReleaseBuildConfig
+> Task :android-wellbeing:writeReleaseAarMetadata
+> Task :android-wellbeing:copyReleaseJniLibsProjectOnly
+> Task :react-native-masked-view_masked-view:generateReleaseResValues
+> Task :expo-constants:packageReleaseResources
+> Task :app:buildKotlinToolingMetadata
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :android-wellbeing:processReleaseManifest
+> Task :react-native-health-connect-expo:packageReleaseResources
+> Task :expo-constants:parseReleaseLocalResources
+> Task :react-native-masked-view_masked-view:generateReleaseResources
+> Task :android-wellbeing:compileReleaseLibraryResources
+> Task :expo:writeReleaseAarMetadata
+> Task :expo-constants:javaPreCompileRelease
+> Task :expo-modules-core:writeReleaseAarMetadata
+> Task :expo-log-box:writeReleaseAarMetadata
+> Task :react-native-health-connect-expo:parseReleaseLocalResources
+> Task :react-native-health-connect-expo:javaPreCompileRelease
+> Task :expo-constants:writeReleaseAarMetadata
+> Task :react-native-masked-view_masked-view:packageReleaseResources
+> Task :expo-constants:generateReleaseRFile
+> Task :android-wellbeing:extractDeepLinksRelease
+> Task :react-native-health-connect-expo:writeReleaseAarMetadata
+> Task :react-native-masked-view_masked-view:javaPreCompileRelease
+> Task :react-native-masked-view_masked-view:parseReleaseLocalResources
+> Task :react-native-masked-view_masked-view:writeReleaseAarMetadata
+> Task :expo-constants:extractDeepLinksRelease
+> Task :expo:extractDeepLinksRelease
+> Task :react-native-health-connect-expo:generateReleaseRFile
+> Task :expo-log-box:extractDeepLinksRelease
+> Task :react-native-masked-view_masked-view:generateReleaseRFile
+> Task :expo-constants:processReleaseManifest
+> Task :expo-modules-core:extractDeepLinksRelease
+> Task :expo-log-box:processReleaseManifest
+> Task :expo:processReleaseManifest
+> Task :react-native-health-connect-expo:extractDeepLinksRelease
+> Task :expo:compileReleaseLibraryResources
+> Task :expo-constants:compileReleaseLibraryResources
+> Task :expo-log-box:compileReleaseLibraryResources
+> Task :react-native-health-connect-expo:processReleaseManifest
+> Task :react-native-health-connect-expo:compileReleaseLibraryResources
+> Task :expo:prepareReleaseArtProfile
+> Task :expo-constants:prepareReleaseArtProfile
+> Task :expo-log-box:prepareReleaseArtProfile
+> Task :react-native-health-connect-expo:prepareReleaseArtProfile
+> Task :expo-modules-core:prepareReleaseArtProfile
+
+> Task :expo-modules-core:processReleaseManifest
+D:\WELLNESSAI\wellnessAI\node_modules\expo-modules-core\android\src\main\AndroidManifest.xml:8:9-11:45 Warning:
+	meta-data#com.facebook.soloader.enabled@android:value was tagged at AndroidManifest.xml:8 to replace other declarations but no other declaration present
+
+> Task :expo-log-box:mergeReleaseShaders
+> Task :expo:mergeReleaseShaders
+> Task :expo-constants:mergeReleaseShaders
+> Task :expo-log-box:compileReleaseShaders NO-SOURCE
+> Task :expo-log-box:generateReleaseAssets UP-TO-DATE
+> Task :expo:compileReleaseShaders NO-SOURCE
+> Task :expo-constants:compileReleaseShaders NO-SOURCE
+> Task :expo-constants:generateReleaseAssets UP-TO-DATE
+> Task :expo:generateReleaseAssets UP-TO-DATE
+> Task :expo-log-box:mergeReleaseAssets
+> Task :expo:mergeReleaseAssets
+> Task :expo-modules-core:mergeReleaseShaders
+> Task :expo-modules-core:compileReleaseShaders NO-SOURCE
+> Task :expo-modules-core:generateReleaseAssets UP-TO-DATE
+> Task :react-native-health-connect-expo:mergeReleaseShaders
+> Task :react-native-health-connect-expo:compileReleaseShaders NO-SOURCE
+> Task :react-native-health-connect-expo:generateReleaseAssets UP-TO-DATE
+> Task :expo-constants:mergeReleaseAssets
+> Task :expo-modules-core:mergeReleaseAssets
+> Task :react-native-health-connect-expo:mergeReleaseAssets
+> Task :expo:extractProguardFiles
+> Task :android-wellbeing:extractProguardFiles
+> Task :expo-constants:extractProguardFiles
+> Task :expo-modules-core:extractProguardFiles
+> Task :expo-modules-core:prepareLintJarForPublish
+> Task :expo-constants:prepareLintJarForPublish
+> Task :expo-modules-core:extractDeepLinksForAarRelease
+> Task :expo-log-box:extractProguardFiles
+> Task :expo-log-box:prepareLintJarForPublish
+> Task :expo-modules-core:writeReleaseLintModelMetadata
+> Task :expo-log-box:stripReleaseDebugSymbols NO-SOURCE
+> Task :expo:prepareLintJarForPublish
+> Task :react-native-health-connect-expo:extractProguardFiles
+> Task :expo:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-health-connect-expo:prepareLintJarForPublish
+> Task :expo-log-box:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-health-connect-expo:stripReleaseDebugSymbols NO-SOURCE
+> Task :expo:copyReleaseJniLibsProjectAndLocalJars
+> Task :expo-log-box:extractDeepLinksForAarRelease
+> Task :expo-constants:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-health-connect-expo:copyReleaseJniLibsProjectAndLocalJars
+> Task :expo:extractDeepLinksForAarRelease
+> Task :expo-constants:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-health-connect-expo:extractDeepLinksForAarRelease
+> Task :expo-constants:extractDeepLinksForAarRelease
+> Task :expo-constants:writeReleaseLintModelMetadata
+> Task :expo-log-box:writeReleaseLintModelMetadata
+> Task :android-wellbeing:writeReleaseLintModelMetadata
+> Task :react-native-health-connect-expo:writeReleaseLintModelMetadata
+> Task :expo:writeReleaseLintModelMetadata
+> Task :expo-constants:mapReleaseSourceSetPaths
+> Task :react-native-worklets:generateCodegenSchemaFromJavaScript
+> Task :react-native-reanimated:generateCodegenSchemaFromJavaScript
+> Task :react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript
+> Task :expo-constants:mergeReleaseResources
+> Task :react-native-health-connect:generateCodegenSchemaFromJavaScript
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript
+> Task :expo-log-box:mapReleaseSourceSetPaths
+> Task :expo-constants:verifyReleaseResources
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript
+> Task :react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema
+> Task :react-native-async-storage_async-storage:preBuild
+> Task :react-native-health-connect:generateCodegenArtifactsFromSchema
+> Task :react-native-async-storage_async-storage:preReleaseBuild
+> Task :react-native-health-connect:preBuild
+> Task :react-native-health-connect:preReleaseBuild
+> Task :react-native-async-storage_async-storage:mergeReleaseJniLibFolders
+> Task :react-native-health-connect:mergeReleaseJniLibFolders
+> Task :react-native-async-storage_async-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-health-connect:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-svg:generateCodegenArtifactsFromSchema
+> Task :react-native-svg:preBuild
+> Task :react-native-svg:preReleaseBuild
+> Task :react-native-health-connect:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-health-connect:copyReleaseJniLibsProjectOnly
+> Task :react-native-svg:mergeReleaseJniLibFolders
+> Task :react-native-svg:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-screens:generateCodegenArtifactsFromSchema
+> Task :react-native-screens:preBuild
+> Task :react-native-screens:preReleaseBuild
+> Task :react-native-health-connect:generateReleaseBuildConfig
+> Task :react-native-reanimated:generateCodegenArtifactsFromSchema
+> Task :react-native-health-connect:generateReleaseResValues
+> Task :react-native-svg:copyReleaseJniLibsProjectOnly
+> Task :react-native-worklets:generateCodegenArtifactsFromSchema
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectOnly
+> Task :react-native-safe-area-context:preBuild
+> Task :react-native-safe-area-context:preReleaseBuild
+> Task :react-native-safe-area-context:mergeReleaseJniLibFolders
+> Task :react-native-async-storage_async-storage:generateReleaseBuildConfig
+> Task :react-native-safe-area-context:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-async-storage_async-storage:generateReleaseResValues
+> Task :react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectOnly
+> Task :react-native-health-connect:generateReleaseResources
+> Task :react-native-async-storage_async-storage:generateReleaseResources
+> Task :react-native-safe-area-context:generateReleaseBuildConfig
+> Task :react-native-safe-area-context:generateReleaseResValues
+> Task :react-native-safe-area-context:generateReleaseResources
+> Task :react-native-health-connect:packageReleaseResources
+> Task :react-native-async-storage_async-storage:packageReleaseResources
+> Task :react-native-health-connect:javaPreCompileRelease
+> Task :react-native-health-connect:parseReleaseLocalResources
+> Task :react-native-health-connect:writeReleaseAarMetadata
+> Task :react-native-async-storage_async-storage:javaPreCompileRelease
+> Task :react-native-health-connect:extractDeepLinksRelease
+> Task :react-native-async-storage_async-storage:writeReleaseAarMetadata
+> Task :react-native-async-storage_async-storage:parseReleaseLocalResources
+> Task :react-native-safe-area-context:packageReleaseResources
+> Task :react-native-safe-area-context:javaPreCompileRelease
+> Task :react-native-safe-area-context:parseReleaseLocalResources
+> Task :react-native-safe-area-context:writeReleaseAarMetadata
+> Task :react-native-health-connect:generateReleaseRFile
+> Task :react-native-safe-area-context:extractDeepLinksRelease
+> Task :react-native-health-connect:compileReleaseLibraryResources
+> Task :react-native-safe-area-context:generateReleaseRFile
+
+> Task :react-native-health-connect:processReleaseManifest
+package="dev.matinzd.healthconnect" found in source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\react-native-health-connect\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="dev.matinzd.healthconnect" from the source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\react-native-health-connect\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-safe-area-context:processReleaseManifest
+package="com.th3rdwave.safeareacontext" found in source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\react-native-safe-area-context\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.th3rdwave.safeareacontext" from the source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\react-native-safe-area-context\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-svg:generateReleaseBuildConfig
+> Task :react-native-async-storage_async-storage:extractDeepLinksRelease
+> Task :react-native-svg:generateReleaseResValues
+> Task :react-native-async-storage_async-storage:generateReleaseRFile
+> Task :react-native-async-storage_async-storage:compileReleaseLibraryResources
+
+> Task :react-native-async-storage_async-storage:processReleaseManifest
+package="com.reactnativecommunity.asyncstorage" found in source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\@react-native-async-storage\async-storage\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.reactnativecommunity.asyncstorage" from the source AndroidManifest.xml: D:\WELLNESSAI\wellnessAI\node_modules\@react-native-async-storage\async-storage\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-safe-area-context:compileReleaseLibraryResources
+> Task :react-native-safe-area-context:prepareReleaseArtProfile
+> Task :react-native-safe-area-context:mergeReleaseShaders
+> Task :react-native-safe-area-context:compileReleaseShaders NO-SOURCE
+> Task :react-native-safe-area-context:generateReleaseAssets UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseAssets
+> Task :react-native-safe-area-context:extractProguardFiles
+> Task :react-native-safe-area-context:prepareLintJarForPublish
+> Task :react-native-safe-area-context:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-safe-area-context:extractDeepLinksForAarRelease
+> Task :react-native-worklets:prepareWorkletsHeadersForPrefabs
+> Task :react-native-worklets:preBuild
+> Task :react-native-worklets:preReleaseBuild
+> Task :react-native-safe-area-context:writeReleaseLintModelMetadata
+> Task :react-native-worklets:generateReleaseBuildConfig
+> Task :react-native-worklets:generateReleaseResValues
+> Task :react-native-svg:generateReleaseResources
+> Task :react-native-worklets:generateReleaseResources
+> Task :react-native-safe-area-context:mapReleaseSourceSetPaths
+> Task :react-native-svg:packageReleaseResources
+> Task :react-native-svg:javaPreCompileRelease
+> Task :react-native-worklets:packageReleaseResources
+> Task :react-native-svg:parseReleaseLocalResources
+> Task :react-native-svg:writeReleaseAarMetadata
+> Task :react-native-worklets:parseReleaseLocalResources
+> Task :react-native-svg:generateReleaseRFile
+> Task :react-native-worklets:javaPreCompileRelease
+> Task :react-native-worklets:generateReleaseRFile
+> Task :android-wellbeing:mapReleaseSourceSetPaths
+> Task :react-native-reanimated:prepareReanimatedHeadersForPrefabs
+> Task :react-native-worklets:compileReleaseLibraryResources
+> Task :react-native-reanimated:preBuild
+> Task :react-native-reanimated:preReleaseBuild
+
+> Task :react-native-masked-view_masked-view:compileReleaseJavaWithJavac
+
+> Task :react-native-screens:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-reanimated:mergeReleaseJniLibFolders
+> Task :app:createBundleReleaseJsAndAssets
+> Task :react-native-reanimated:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :react-native-async-storage_async-storage:compileReleaseJavaWithJavac
+
+> Task :react-native-reanimated:generateReleaseBuildConfig
+> Task :react-native-reanimated:generateReleaseResValues
+> Task :react-native-reanimated:generateReleaseResources
+> Task :expo-log-box:mergeReleaseResources
+> Task :react-native-reanimated:packageReleaseResources
+> Task :react-native-reanimated:parseReleaseLocalResources
+> Task :react-native-reanimated:generateReleaseRFile
+> Task :react-native-reanimated:javaPreCompileRelease
+> Task :react-native-masked-view_masked-view:bundleLibRuntimeToDirRelease
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToDirRelease
+> Task :react-native-reanimated:writeReleaseAarMetadata
+> Task :react-native-masked-view_masked-view:extractDeepLinksRelease
+> Task :react-native-masked-view_masked-view:processReleaseManifest
+> Task :react-native-reanimated:extractDeepLinksRelease
+> Task :react-native-reanimated:processReleaseManifest
+> Task :react-native-masked-view_masked-view:compileReleaseLibraryResources
+> Task :react-native-reanimated:compileReleaseLibraryResources
+> Task :react-native-async-storage_async-storage:bundleLibCompileToJarRelease
+> Task :react-native-health-connect:compileReleaseKotlin
+> Task :react-native-masked-view_masked-view:bundleLibCompileToJarRelease
+> Task :react-native-async-storage_async-storage:prepareReleaseArtProfile
+> Task :react-native-safe-area-context:compileReleaseKotlin
+> Task :react-native-health-connect:prepareReleaseArtProfile
+> Task :react-native-masked-view_masked-view:prepareReleaseArtProfile
+> Task :react-native-reanimated:prepareReleaseArtProfile
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToJarRelease
+> Task :react-native-masked-view_masked-view:bundleLibRuntimeToJarRelease
+> Task :react-native-async-storage_async-storage:mergeReleaseShaders
+> Task :react-native-async-storage_async-storage:compileReleaseShaders NO-SOURCE
+> Task :react-native-async-storage_async-storage:generateReleaseAssets UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseAssets
+> Task :react-native-health-connect:mergeReleaseShaders
+> Task :react-native-health-connect:compileReleaseShaders NO-SOURCE
+> Task :react-native-health-connect:generateReleaseAssets UP-TO-DATE
+> Task :react-native-health-connect:mergeReleaseAssets
+> Task :react-native-masked-view_masked-view:mergeReleaseShaders
+> Task :react-native-masked-view_masked-view:compileReleaseShaders NO-SOURCE
+> Task :react-native-masked-view_masked-view:generateReleaseAssets UP-TO-DATE
+> Task :react-native-masked-view_masked-view:mergeReleaseAssets
+> Task :react-native-reanimated:mergeReleaseShaders
+> Task :react-native-reanimated:compileReleaseShaders NO-SOURCE
+> Task :react-native-reanimated:generateReleaseAssets UP-TO-DATE
+> Task :react-native-reanimated:mergeReleaseAssets
+> Task :react-native-async-storage_async-storage:processReleaseJavaRes NO-SOURCE
+> Task :react-native-health-connect:extractProguardFiles
+> Task :react-native-health-connect:prepareLintJarForPublish
+> Task :react-native-masked-view_masked-view:processReleaseJavaRes NO-SOURCE
+> Task :react-native-async-storage_async-storage:createFullJarRelease
+> Task :react-native-async-storage_async-storage:extractProguardFiles
+> Task :react-native-masked-view_masked-view:createFullJarRelease
+> Task :react-native-masked-view_masked-view:extractProguardFiles
+> Task :react-native-safe-area-context:mergeReleaseResources
+> Task :react-native-worklets:compileReleaseKotlin
+> Task :react-native-svg:compileReleaseJavaWithJavac
+> Task :android-wellbeing:mergeReleaseResources
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-reanimated:extractProguardFiles
+
+> Task :react-native-safe-area-context:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaProviderManager.kt:39:19 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:9:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:50:54 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:59:23 'val uiImplementation: UIImplementation!' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaViewShadowNode.kt:9:32 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. This class is part of Legacy Architecture and will be removed in a future release.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaViewShadowNode.kt:110:61 'class NativeViewHierarchyOptimizer : Any' is deprecated. This class is part of Legacy Architecture and will be removed in a future release.
+
+> Task :react-native-reanimated:prepareLintJarForPublish
+> Task :react-native-health-connect:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-health-connect:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-health-connect:extractDeepLinksForAarRelease
+> Task :react-native-reanimated:extractDeepLinksForAarRelease
+> Task :react-native-health-connect:writeReleaseLintModelMetadata
+> Task :react-native-reanimated:writeReleaseLintModelMetadata
+> Task :expo-modules-core:mapReleaseSourceSetPaths
+> Task :react-native-async-storage_async-storage:generateReleaseLintModel
+> Task :expo:mapReleaseSourceSetPaths
+> Task :react-native-masked-view_masked-view:generateReleaseLintModel
+> Task :react-native-masked-view_masked-view:prepareLintJarForPublish
+> Task :react-native-masked-view_masked-view:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-async-storage_async-storage:prepareLintJarForPublish
+> Task :react-native-async-storage_async-storage:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-masked-view_masked-view:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-async-storage_async-storage:extractDeepLinksForAarRelease
+> Task :react-native-masked-view_masked-view:extractDeepLinksForAarRelease
+> Task :react-native-masked-view_masked-view:extractReleaseAnnotations
+> Task :react-native-masked-view_masked-view:mergeReleaseGeneratedProguardFiles
+> Task :react-native-async-storage_async-storage:extractReleaseAnnotations
+> Task :react-native-masked-view_masked-view:mergeReleaseConsumerProguardFiles
+> Task :react-native-async-storage_async-storage:mergeReleaseGeneratedProguardFiles
+> Task :react-native-async-storage_async-storage:mergeReleaseConsumerProguardFiles
+> Task :react-native-async-storage_async-storage:mergeReleaseJavaResource
+> Task :react-native-async-storage_async-storage:syncReleaseLibJars
+
+> Task :react-native-svg:compileReleaseJavaWithJavac
+
+> Task :react-native-async-storage_async-storage:bundleReleaseLocalLintAar
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[arm64-v8a][worklets]
+> Task :react-native-masked-view_masked-view:mergeReleaseJavaResource
+> Task :react-native-masked-view_masked-view:syncReleaseLibJars
+> Task :react-native-masked-view_masked-view:bundleReleaseLocalLintAar
+> Task :react-native-async-storage_async-storage:writeReleaseLintModelMetadata
+> Task :expo-modules-core:mergeReleaseResources
+> Task :expo:mergeReleaseResources
+
+> Task :app:createBundleReleaseJsAndAssets
+env: load .env
+env: export EXPO_PUBLIC_API_URL NEON_DATABASE_URL OPENAI_API_KEY
+
+> Task :react-native-svg:bundleLibRuntimeToDirRelease
+> Task :react-native-async-storage_async-storage:lintVitalAnalyzeRelease
+> Task :react-native-masked-view_masked-view:lintVitalAnalyzeRelease
+> Task :react-native-svg:extractDeepLinksRelease
+> Task :react-native-svg:processReleaseManifest
+
+> Task :react-native-health-connect:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/HealthConnectPackage.kt:3:8 'class TurboReactPackage : BaseReactPackage' is deprecated. Use BaseReactPackage instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/HealthConnectPackage.kt:10:30 'class TurboReactPackage : BaseReactPackage' is deprecated. Use BaseReactPackage instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/HealthConnectPackage.kt:23:47 'constructor(name: String, className: String, canOverrideExistingModule: Boolean, needsEagerInit: Boolean, hasConstants: Boolean, isCxxModule: Boolean, isTurboModule: Boolean): ReactModuleInfo' is deprecated. This constructor is deprecated and will be removed in the future. Use ReactModuleInfo(String, String, boolean, boolean, boolean, boolean)].
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/records/ReactHealthRecord.kt:34:26 'fun newInstance(): CapturedType(out ReactHealthRecordImpl<*>)!' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/records/ReactHealthRecord.kt:34:40 Unchecked cast of 'ReactHealthRecordImpl<*>?' to 'ReactHealthRecordImpl<T (of fun <T : Record> createReactHealthRecordInstance)>'.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/records/ReactHealthRecord.kt:43:26 'fun newInstance(): CapturedType(out ReactHealthRecordImpl<out Record>)!' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-health-connect/android/src/main/java/dev/matinzd/healthconnect/records/ReactHealthRecord.kt:43:40 Unchecked cast of 'ReactHealthRecordImpl<out Record>?' to 'ReactHealthRecordImpl<T (of fun <T : Record> createReactHealthRecordInstance)>'.
+
+> Task :react-native-svg:compileReleaseLibraryResources
+> Task :react-native-safe-area-context:compileReleaseJavaWithJavac
+> Task :react-native-safe-area-context:bundleLibRuntimeToDirRelease
+> Task :react-native-svg:bundleLibCompileToJarRelease
+> Task :react-native-safe-area-context:bundleLibCompileToJarRelease
+> Task :react-native-svg:prepareReleaseArtProfile
+> Task :react-native-safe-area-context:bundleLibRuntimeToJarRelease
+> Task :android-wellbeing:verifyReleaseResources
+> Task :react-native-svg:mergeReleaseShaders
+> Task :react-native-svg:compileReleaseShaders NO-SOURCE
+> Task :react-native-svg:generateReleaseAssets UP-TO-DATE
+> Task :react-native-svg:mergeReleaseAssets
+> Task :react-native-safe-area-context:processReleaseJavaRes
+> Task :react-native-svg:bundleLibRuntimeToJarRelease
+> Task :react-native-safe-area-context:createFullJarRelease
+> Task :react-native-svg:processReleaseJavaRes NO-SOURCE
+> Task :react-native-svg:createFullJarRelease
+> Task :react-native-safe-area-context:generateReleaseLintModel
+> Task :react-native-svg:extractProguardFiles
+> Task :react-native-safe-area-context:extractReleaseAnnotations
+> Task :react-native-safe-area-context:mergeReleaseGeneratedProguardFiles
+> Task :react-native-safe-area-context:mergeReleaseConsumerProguardFiles
+> Task :react-native-svg:generateReleaseLintModel
+> Task :react-native-svg:prepareLintJarForPublish
+> Task :react-native-svg:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-svg:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-svg:extractDeepLinksForAarRelease
+> Task :react-native-safe-area-context:mergeReleaseJavaResource
+> Task :react-native-svg:extractReleaseAnnotations
+> Task :react-native-svg:mergeReleaseGeneratedProguardFiles
+> Task :react-native-svg:mergeReleaseConsumerProguardFiles
+> Task :react-native-svg:mergeReleaseJavaResource
+> Task :react-native-safe-area-context:syncReleaseLibJars
+> Task :react-native-safe-area-context:bundleReleaseLocalLintAar
+> Task :react-native-masked-view_masked-view:writeReleaseLintModelMetadata
+> Task :react-native-async-storage_async-storage:generateReleaseLintVitalModel
+> Task :react-native-masked-view_masked-view:generateReleaseLintVitalModel
+> Task :react-native-safe-area-context:generateReleaseLintVitalModel
+> Task :react-native-health-connect:compileReleaseJavaWithJavac
+> Task :react-native-svg:syncReleaseLibJars
+> Task :react-native-health-connect:bundleLibCompileToJarRelease
+> Task :react-native-health-connect:bundleLibRuntimeToJarRelease
+> Task :react-native-health-connect:bundleLibRuntimeToDirRelease
+> Task :react-native-health-connect:processReleaseJavaRes
+> Task :react-native-health-connect:createFullJarRelease
+> Task :react-native-safe-area-context:lintVitalAnalyzeRelease
+> Task :expo-log-box:verifyReleaseResources
+> Task :react-native-svg:bundleReleaseLocalLintAar
+> Task :react-native-svg:writeReleaseLintModelMetadata
+> Task :react-native-health-connect:generateReleaseLintModel
+> Task :react-native-svg:generateReleaseLintVitalModel
+> Task :react-native-health-connect:extractReleaseAnnotations
+> Task :react-native-health-connect:mergeReleaseGeneratedProguardFiles
+> Task :react-native-health-connect:mergeReleaseConsumerProguardFiles
+> Task :react-native-async-storage_async-storage:bundleReleaseAar
+> Task :react-native-health-connect:mergeReleaseJavaResource
+> Task :react-native-async-storage_async-storage:mapReleaseSourceSetPaths
+> Task :react-native-health-connect:syncReleaseLibJars
+> Task :react-native-health-connect:bundleReleaseLocalLintAar
+> Task :react-native-health-connect:generateReleaseLintVitalModel
+> Task :react-native-health-connect:bundleReleaseAar
+> Task :react-native-health-connect:mapReleaseSourceSetPaths
+> Task :expo-modules-core:verifyReleaseResources
+> Task :react-native-svg:lintVitalAnalyzeRelease
+> Task :react-native-health-connect:lintVitalAnalyzeRelease
+> Task :react-native-async-storage_async-storage:mergeReleaseResources
+> Task :react-native-health-connect:mergeReleaseResources
+> Task :react-native-health-connect-expo:mapReleaseSourceSetPaths
+> Task :react-native-masked-view_masked-view:bundleReleaseAar
+
+> Task :react-native-screens:buildCMakeRelWithDebInfo[arm64-v8a]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-masked-view_masked-view:mapReleaseSourceSetPaths
+
+> Task :app:createBundleReleaseJsAndAssets
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+
+> Task :react-native-reanimated:mapReleaseSourceSetPaths
+> Task :react-native-health-connect-expo:mergeReleaseResources
+> Task :react-native-masked-view_masked-view:mergeReleaseResources
+> Task :react-native-safe-area-context:bundleReleaseAar
+> Task :react-native-reanimated:mergeReleaseResources
+> Task :react-native-screens:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-health-connect:verifyReleaseResources
+> Task :react-native-safe-area-context:verifyReleaseResources
+> Task :react-native-screens:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-async-storage_async-storage:verifyReleaseResources
+
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[arm64-v8a][worklets]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-reanimated:verifyReleaseResources
+> Task :react-native-health-connect-expo:verifyReleaseResources
+> Task :react-native-masked-view_masked-view:verifyReleaseResources
+> Task :expo:verifyReleaseResources
+> Task :react-native-svg:bundleReleaseAar
+> Task :react-native-svg:mapReleaseSourceSetPaths
+> Task :react-native-safe-area-context:assembleRelease
+> Task :react-native-svg:mergeReleaseResources
+> Task :react-native-worklets:compileReleaseJavaWithJavac
+> Task :react-native-worklets:bundleLibCompileToJarRelease
+> Task :react-native-async-storage_async-storage:assembleRelease
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-health-connect:assembleRelease
+> Task :react-native-svg:verifyReleaseResources
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[armeabi-v7a][worklets]
+> Task :expo-modules-core:compileReleaseKotlin
+> Task :react-native-reanimated:compileReleaseKotlin
+> Task :react-native-masked-view_masked-view:assembleRelease
+
+> Task :react-native-screens:buildCMakeRelWithDebInfo[armeabi-v7a]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86]
+
+> Task :react-native-reanimated:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/NodesManager.kt:13:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/NodesManager.kt:58:95 'fun resolveCustomDirectEventName(eventName: String): String?' is deprecated.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/NodesManager.kt:234:29 'fun receiveEvent(surfaceId: Int, targetTag: Int, eventName: String, canCoalesceEvent: Boolean, customCoalesceKey: Int, params: WritableMap?, category: Int): Unit' is deprecated. Use the overload with eventTimestamp parameter instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.kt:5:8 'class ReactInstanceManager : Any' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.kt:60:73 'class ReactInstanceManager : Any' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.kt:61:63 'val reactNativeHost: ReactNativeHost' is deprecated. You should not use ReactNativeHost directly in the New Architecture. Use ReactHost instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/EventHandler.kt:7:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/EventHandler.kt:25:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/EventHandler.kt:38:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/EventHandler.kt:48:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/EventHandler.kt:57:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/NoopEventHandler.kt:8:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/NoopEventHandler.kt:20:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/NoopEventHandler.kt:29:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/nativeProxy/NoopEventHandler.kt:37:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/sensor/ReanimatedSensor.kt:28:26 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86]
+> Task :react-native-svg:assembleRelease
+> Task :react-native-reanimated:compileReleaseJavaWithJavac
+> Task :react-native-reanimated:bundleLibCompileToJarRelease
+> Task :react-native-reanimated:bundleLibRuntimeToDirRelease
+> Task :react-native-reanimated:bundleLibRuntimeToJarRelease
+
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[armeabi-v7a][worklets]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :app:createBundleReleaseJsAndAssets
+Android Bundled 359625ms node_modules\expo-router\entry.js (2020 modules)
+Writing bundle output to: android\app\build\generated\assets\react\release\index.android.bundle
+Writing sourcemap output to: android\app\build\intermediates\sourcemaps\react\release\index.android.bundle.packager.map
+Copying 53 asset files
+Done writing bundle output
+Done writing sourcemap output
+
+> Task :react-native-reanimated:processReleaseJavaRes
+> Task :react-native-reanimated:createFullJarRelease
+> Task :react-native-reanimated:extractReleaseAnnotations
+> Task :react-native-reanimated:mergeReleaseGeneratedProguardFiles
+> Task :react-native-reanimated:mergeReleaseConsumerProguardFiles
+> Task :react-native-reanimated:mergeReleaseJavaResource
+> Task :react-native-reanimated:syncReleaseLibJars
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[x86]
+
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86_64]
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[x86][worklets]
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:generateReleaseBuildConfig
+> Task :app:generateReleaseResValues
+> Task :app:generateReleaseResources
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :app:javaPreCompileRelease
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+> Task :app:parseReleaseLocalResources
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86_64]
+
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[x86][worklets]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :expo-modules-core:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/apploader/AppLoaderProvider.kt:34:52 Unchecked cast of 'Class<*>!' to 'Class<out HeadlessAppLoader>'.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:14:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:22:8 'typealias ErrorManagerModule = JSLoggerModule' is deprecated. Use JSLoggerModule instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:61:13 'val hostingRuntimeContext: MainRuntime' is deprecated. Use AppContext.runtimeContext instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:271:21 'typealias ErrorManagerModule = JSLoggerModule' is deprecated. Use JSLoggerModule instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:380:21 'val DEFAULT: Int' is deprecated. UIManagerType.DEFAULT will be deleted in the next release of React Native. Use [LEGACY] instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt:381:10 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/defaultmodules/NativeModulesProxyModule.kt:16:5 'fun Constants(legacyConstantsProvider: () -> Map<String, Any?>): Unit' is deprecated. Use `Constant` or `Property` instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/events/KModuleEventEmitterWrapper.kt:99:21 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/events/KModuleEventEmitterWrapper.kt:108:21 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/ViewDefinitionBuilder.kt:470:16 'val errorManager: JSLoggerModule?' is deprecated. Use AppContext.jsLogger instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/ViewDefinitionBuilder.kt:470:30 'fun reportExceptionToLogBox(codedException: CodedException): Unit' is deprecated. Use appContext.jsLogger.error(...) instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/ViewManagerDefinition.kt:41:16 'val errorManager: JSLoggerModule?' is deprecated. Use AppContext.jsLogger instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/ViewManagerDefinition.kt:41:30 'fun reportExceptionToLogBox(codedException: CodedException): Unit' is deprecated. Use appContext.jsLogger.error(...) instead.
+
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86_64]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-screens\android\build\intermediates\cxx\RelWithDebInfo\2b6n6k3n\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :app:mergeExtDexRelease
+> Task :react-native-screens:mergeReleaseJniLibFolders
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[x86_64]
+> Task :expo-modules-core:compileReleaseJavaWithJavac
+
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[x86_64][worklets]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cxx\RelWithDebInfo\5q95x3i4\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:generateReleaseBuildConfig
+> Task :react-native-screens:generateReleaseResValues
+> Task :react-native-screens:generateReleaseResources
+> Task :react-native-screens:mergeReleaseNativeLibs
+> Task :react-native-screens:packageReleaseResources
+> Task :react-native-screens:javaPreCompileRelease
+> Task :react-native-screens:writeReleaseAarMetadata
+> Task :react-native-screens:extractDeepLinksRelease
+> Task :react-native-screens:copyReleaseJniLibsProjectOnly
+> Task :react-native-screens:parseReleaseLocalResources
+> Task :react-native-screens:generateReleaseRFile
+> Task :react-native-screens:processReleaseManifest
+> Task :react-native-screens:compileReleaseLibraryResources
+> Task :expo-modules-core:processReleaseJavaRes
+> Task :expo-modules-core:extractReleaseAnnotations
+> Task :expo-modules-core:mergeReleaseGeneratedProguardFiles
+> Task :expo-modules-core:mergeReleaseConsumerProguardFiles
+> Task :expo-modules-core:mergeReleaseJavaResource
+
+> Task :react-native-worklets:externalNativeBuildRelease
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.armeabi-v7a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\armeabi-v7a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-screens:prepareReleaseArtProfile
+> Task :react-native-screens:mergeReleaseShaders
+> Task :react-native-screens:compileReleaseShaders NO-SOURCE
+> Task :react-native-screens:generateReleaseAssets UP-TO-DATE
+> Task :react-native-screens:mergeReleaseAssets
+> Task :react-native-screens:extractProguardFiles
+> Task :react-native-screens:prepareLintJarForPublish
+> Task :react-native-screens:extractDeepLinksForAarRelease
+> Task :react-native-screens:writeReleaseLintModelMetadata
+> Task :react-native-screens:mapReleaseSourceSetPaths
+> Task :react-native-screens:stripReleaseDebugSymbols
+> Task :expo-modules-core:bundleLibCompileToJarRelease
+
+> Task :react-native-worklets:externalNativeBuildRelease
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\x86\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :expo-modules-core:bundleLibRuntimeToJarRelease
+
+> Task :react-native-worklets:externalNativeBuildRelease
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.x86_64\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\react-native-worklets\android\build\intermediates\cmake\release\obj\x86_64\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :expo-modules-core:bundleLibRuntimeToDirRelease
+> Task :expo-modules-core:syncReleaseLibJars
+> Task :app:mapReleaseSourceSetPaths
+> Task :react-native-screens:compileReleaseKotlin
+> Task :expo-modules-core:createFullJarRelease
+> Task :react-native-screens:mergeReleaseResources
+> Task :android-wellbeing:compileReleaseKotlin
+> Task :react-native-health-connect-expo:compileReleaseKotlin
+> Task :expo-log-box:compileReleaseKotlin
+> Task :expo-constants:compileReleaseKotlin
+> Task :app:mergeReleaseResources
+
+> Task :android-wellbeing:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/modules/android-wellbeing/android/src/main/java/wellbeing/AndroidWellbeingModule.kt:23:25 'fun checkOpNoThrow(p0: String, p1: Int, p2: String): Int' is deprecated. Deprecated in Java.
+
+> Task :expo-constants:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo-constants/android/src/main/java/expo/modules/constants/ConstantsModule.kt:13:5 'fun Constants(legacyConstantsProvider: () -> Map<String, Any?>): Unit' is deprecated. Use `Constant` or `Property` instead.
+
+> Task :android-wellbeing:extractReleaseAnnotations
+> Task :expo-constants:compileReleaseJavaWithJavac
+> Task :expo-constants:bundleLibCompileToJarRelease
+> Task :expo-constants:bundleLibRuntimeToDirRelease
+> Task :expo-constants:bundleLibRuntimeToJarRelease
+> Task :expo-constants:processReleaseJavaRes
+> Task :expo-constants:createFullJarRelease
+> Task :expo-constants:extractReleaseAnnotations
+> Task :expo-constants:mergeReleaseGeneratedProguardFiles
+> Task :expo-constants:mergeReleaseConsumerProguardFiles
+> Task :expo-log-box:compileReleaseJavaWithJavac
+> Task :expo-log-box:bundleLibCompileToJarRelease
+> Task :expo-log-box:bundleLibRuntimeToDirRelease
+> Task :expo-log-box:bundleLibRuntimeToJarRelease
+> Task :expo-log-box:processReleaseJavaRes
+> Task :expo-log-box:createFullJarRelease
+> Task :react-native-worklets:generateJsonModelRelease
+> Task :react-native-worklets:prefabReleaseConfigurePackage
+> Task :expo-log-box:extractReleaseAnnotations
+> Task :app:mergeReleaseShaders
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :expo-constants:mergeReleaseJavaResource
+> Task :expo-log-box:mergeReleaseGeneratedProguardFiles
+> Task :app:extractReleaseVersionControlInfo
+> Task :expo-log-box:mergeReleaseConsumerProguardFiles
+> Task :react-native-screens:copyReleaseJniLibsProjectAndLocalJars
+> Task :app:extractProguardFiles
+> Task :expo-log-box:mergeReleaseJavaResource
+> Task :expo-constants:syncReleaseLibJars
+> Task :expo-constants:bundleReleaseLocalLintAar
+> Task :expo-constants:bundleReleaseAar
+> Task :expo-constants:assembleRelease
+> Task :expo-log-box:syncReleaseLibJars
+> Task :expo-log-box:bundleReleaseLocalLintAar
+> Task :expo-log-box:bundleReleaseAar
+> Task :expo-log-box:assembleRelease
+> Task :react-native-worklets:prefabReleasePackage
+> Task :react-native-worklets:mergeReleaseJniLibFolders
+> Task :react-native-worklets:bundleLibRuntimeToDirRelease
+> Task :android-wellbeing:compileReleaseJavaWithJavac
+> Task :react-native-worklets:mergeReleaseNativeLibs
+> Task :react-native-worklets:writeReleaseAarMetadata
+> Task :react-native-worklets:extractDeepLinksRelease
+> Task :react-native-worklets:copyReleaseJniLibsProjectOnly
+> Task :react-native-worklets:prepareReleaseArtProfile
+> Task :react-native-worklets:mergeReleaseShaders
+> Task :react-native-worklets:compileReleaseShaders NO-SOURCE
+> Task :react-native-worklets:generateReleaseAssets UP-TO-DATE
+> Task :react-native-worklets:mergeReleaseAssets
+> Task :react-native-worklets:processReleaseManifest
+> Task :react-native-worklets:bundleLibRuntimeToJarRelease
+> Task :react-native-worklets:processReleaseJavaRes
+> Task :react-native-worklets:createFullJarRelease
+> Task :react-native-worklets:extractProguardFiles
+> Task :react-native-worklets:generateReleaseLintModel
+> Task :react-native-worklets:prepareLintJarForPublish
+> Task :react-native-worklets:extractDeepLinksForAarRelease
+> Task :react-native-worklets:extractReleaseAnnotations
+> Task :react-native-worklets:stripReleaseDebugSymbols
+> Task :react-native-worklets:mergeReleaseGeneratedProguardFiles
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-health-connect-expo:compileReleaseJavaWithJavac
+> Task :react-native-health-connect-expo:bundleLibCompileToJarRelease
+> Task :expo-modules-core:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:collectReleaseDependencies
+> Task :app:checkReleaseAarMetadata
+
+> Task :app:processReleaseMainManifest
+D:\WELLNESSAI\wellnessAI\android\app\src\main\AndroidManifest.xml Warning:
+	provider#expo.modules.filesystem.FileSystemFileProvider@android:authorities was tagged at AndroidManifest.xml:0 to replace other declarations but no other declaration present
+D:\WELLNESSAI\wellnessAI\android\app\src\main\AndroidManifest.xml Warning:
+	activity#expo.modules.imagepicker.ExpoCropImageActivity@android:exported was tagged at AndroidManifest.xml:0 to replace other declarations but no other declaration present
+
+> Task :app:expoReleaseOverrideMaxSdkConflicts
+[33m---------- Expo Max Sdk Override Plugin ----------[0m
+[32m>>> No 'android:maxSdkVersion' conflicts found[0m
+[33m--------------------------------------------------[0m
+
+> Task :app:processReleaseManifest
+> Task :react-native-screens:verifyReleaseResources
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :android-wellbeing:mergeReleaseGeneratedProguardFiles
+> Task :android-wellbeing:mergeReleaseConsumerProguardFiles
+> Task :android-wellbeing:processReleaseJavaRes
+> Task :android-wellbeing:mergeReleaseJavaResource
+> Task :android-wellbeing:syncReleaseLibJars
+> Task :android-wellbeing:bundleReleaseAar
+> Task :android-wellbeing:assembleRelease
+> Task :android-wellbeing:bundleLibRuntimeToDirRelease
+> Task :android-wellbeing:bundleLibCompileToJarRelease
+> Task :android-wellbeing:bundleReleaseLocalLintAar
+> Task :android-wellbeing:bundleLibRuntimeToJarRelease
+> Task :android-wellbeing:createFullJarRelease
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[x86]
+> Task :react-native-worklets:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-health-connect-expo:bundleLibRuntimeToDirRelease
+> Task :expo-modules-core:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:processReleaseManifestForPackage
+> Task :app:mergeReleaseArtProfile
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[x86_64]
+> Task :react-native-reanimated:generateJsonModelRelease
+
+> Task :react-native-screens:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:70:9 The corresponding parameter in the supertype 'BaseReactPackage' is named 'name'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:71:9 The corresponding parameter in the supertype 'BaseReactPackage' is named 'reactContext'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:83:17 'constructor(name: String, className: String, canOverrideExistingModule: Boolean, needsEagerInit: Boolean, hasConstants: Boolean, isCxxModule: Boolean, isTurboModule: Boolean): ReactModuleInfo' is deprecated. This constructor is deprecated and will be removed in the future. Use ReactModuleInfo(String, String, boolean, boolean, boolean, boolean)].
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:54:77 Unchecked cast of '(CoordinatorLayout.Behavior<View!>?..CoordinatorLayout.Behavior<*>?)' to 'BottomSheetBehavior<Screen>'.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:59:33 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:516:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:250:18 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:260:18 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt:225:37 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt:242:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt:258:22 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt:327:22 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenModalFragment.kt:180:22 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt:120:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:173:18 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:230:31 'var targetElevation: Float' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:233:13 'fun setHasOptionsMenu(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:443:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:450:22 'fun onPrepareOptionsMenu(p0: Menu): Unit' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:453:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:458:22 'fun onCreateOptionsMenu(p0: Menu, p1: MenuInflater): Unit' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:199:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:209:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:48:42 'fun replaceSystemWindowInsets(p0: Int, p1: Int, p2: Int, p3: Int): @NonNull() WindowInsetsCompat' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:49:39 'val systemWindowInsetLeft: Int' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:51:39 'val systemWindowInsetRight: Int' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:52:39 'val systemWindowInsetBottom: Int' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:100:14 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarView.kt:137:29 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:7:8 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:25:13 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:32:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'left'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:33:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'top'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:34:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'right'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:35:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'bottom'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:71:9 The corresponding parameter in the supertype 'RootView' is named 'childView'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:72:9 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:79:46 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:83:9 The corresponding parameter in the supertype 'RootView' is named 'childView'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:84:9 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:95:34 The corresponding parameter in the supertype 'RootView' is named 't'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:64:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:65:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:69:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:70:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/common/event/BaseEventEmitter.kt:12:38 'fun getEventDispatcherForReactTag(context: ReactContext, reactTag: Int): EventDispatcher?' is deprecated. reactTag is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/dimmingview/DimmingView.kt:64:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/dimmingview/DimmingView.kt:65:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/dimmingview/DimmingView.kt:69:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/dimmingview/DimmingView.kt:70:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/formsheet/FormSheetContentView.kt:11:8 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/formsheet/FormSheetContentView.kt:39:33 'fun getEventDispatcher(context: ReactContext, uiManagerType: Int): EventDispatcher?' is deprecated. UIManagerType is no longer needed.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/formsheet/FormSheetContentView.kt:44:13 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/modals/formsheet/FormSheetHostViewManager.kt:38:9 The corresponding parameter in the supertype 'FormSheetHostViewManager' is named 'view'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt:44:9 The corresponding parameter in the supertype 'TabsHostViewManager' is named 'view'. This may cause problems when calling this function with named arguments.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaView.kt:143:45 'fun consumeDisplayCutout(): @NonNull() WindowInsetsCompat' is deprecated. Deprecated in Java.
+
+> Task :react-native-worklets:mergeReleaseConsumerProguardFiles
+> Task :react-native-health-connect-expo:bundleLibRuntimeToJarRelease
+> Task :react-native-worklets:mergeReleaseJavaResource
+> Task :react-native-reanimated:prefabReleaseConfigurePackage
+> Task :react-native-health-connect-expo:processReleaseJavaRes
+> Task :react-native-worklets:writeReleaseLintModelMetadata
+> Task :react-native-health-connect-expo:createFullJarRelease
+> Task :react-native-health-connect-expo:extractReleaseAnnotations
+> Task :react-native-health-connect-expo:mergeReleaseGeneratedProguardFiles
+> Task :react-native-health-connect-expo:mergeReleaseConsumerProguardFiles
+> Task :react-native-worklets:syncReleaseLibJars
+> Task :react-native-health-connect-expo:mergeReleaseJavaResource
+> Task :react-native-health-connect-expo:syncReleaseLibJars
+> Task :react-native-health-connect-expo:bundleReleaseLocalLintAar
+> Task :react-native-health-connect-expo:bundleReleaseAar
+> Task :react-native-health-connect-expo:assembleRelease
+> Task :react-native-worklets:bundleReleaseLocalLintAar
+> Task :react-native-worklets:lintVitalAnalyzeRelease SKIPPED
+> Task :react-native-worklets:generateReleaseLintVitalModel
+> Task :react-native-screens:compileReleaseJavaWithJavac
+> Task :react-native-screens:processReleaseJavaRes
+> Task :react-native-screens:generateReleaseLintModel
+> Task :react-native-screens:extractReleaseAnnotations
+> Task :react-native-screens:mergeReleaseGeneratedProguardFiles
+> Task :react-native-screens:mergeReleaseConsumerProguardFiles
+> Task :react-native-screens:mergeReleaseJavaResource
+> Task :react-native-screens:bundleLibCompileToJarRelease
+
+> Task :expo-modules-core:buildCMakeRelWithDebInfo[arm64-v8a]
+C/C++: ninja: Entering directory `D:\WELLNESSAI\wellnessAI\node_modules\expo-modules-core\android\.cxx\RelWithDebInfo\281t664t\arm64-v8a'
+C/C++: D:/WELLNESSAI/wellnessAI/node_modules/expo-modules-core/android/src/main/cpp/fabric/ExpoComponentDescriptorFactory.cpp:17:5: warning: 'RawPropsParser' is deprecated [-Wdeprecated-declarations]
+C/C++:    17 |     react::RawPropsParser(/*useRawPropsJsiValue=*/true)
+C/C++:       |     ^
+C/C++: D:/WELLNESSAI/wellnessAI/node_modules/react-native/ReactCommon/react/renderer/core/RawPropsParser.h:31:5: note: 'RawPropsParser' has been explicitly marked deprecated here
+C/C++:    31 |   [[deprecated]] explicit RawPropsParser(bool /* ignored */) : RawPropsParser() {}
+C/C++:       |     ^
+C/C++: 1 warning generated.
+
+> Task :react-native-screens:syncReleaseLibJars
+> Task :react-native-screens:bundleLibRuntimeToDirRelease
+> Task :react-native-screens:bundleLibRuntimeToJarRelease
+
+> Task :expo:compileReleaseKotlin
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/ExpoModulesPackage.kt:34:16 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt:22:8 'class ReactInstanceManager : Any' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt:102:16 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt:102:43 'class ReactInstanceManager : Any' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt:103:21 'val reactInstanceManager: ReactInstanceManager' is deprecated. Deprecated in Java.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/fetch/ExpoFetchModule.kt:33:39 'constructor(reactContext: ReactContext): ForwardingCookieHandler' is deprecated. Use the default constructor.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/fetch/NativeResponse.kt:44:16 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/WELLNESSAI/wellnessAI/node_modules/expo/android/src/main/java/expo/modules/fetch/NativeResponse.kt:46:11 'fun deallocate(): Unit' is deprecated. Use sharedObjectDidRelease() instead.
+
+> Task :react-native-reanimated:buildCMakeRelWithDebInfo[arm64-v8a][reanimated]
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:bundleReleaseLocalLintAar
+> Task :react-native-screens:createFullJarRelease
+> Task :react-native-screens:generateReleaseLintVitalModel
+> Task :react-native-worklets:bundleReleaseAar
+> Task :react-native-screens:bundleReleaseAar
+> Task :react-native-screens:assembleRelease
+> Task :react-native-worklets:mapReleaseSourceSetPaths
+
+> Task :expo-modules-core:buildCMakeRelWithDebInfo[arm64-v8a]
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\expo-modules-core\android\build\intermediates\cxx\RelWithDebInfo\281t664t\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\xthar\.gradle\caches\9.3.1\transforms\a2ad667c1455f942621506f7853c7d9d\workspace\transformed\react-android-0.86.3-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\WELLNESSAI\wellnessAI\node_modules\expo-modules-core\android\build\intermediates\cxx\RelWithDebInfo\281t664t\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :react-native-screens:lintVitalAnalyzeRelease
+> Task :react-native-worklets:mergeReleaseResources
+> Task :expo:compileReleaseJavaWithJavac
+> Task :expo:processReleaseJavaRes
+> Task :expo:extractReleaseAnnotations
+> Task :expo:mergeReleaseGeneratedProguardFiles
+> Task :expo:mergeReleaseConsumerProguardFiles
+> Task :expo:mergeReleaseJavaResource
+> Task :expo:bundleLibRuntimeToJarRelease
+> Task :expo:bundleLibCompileToJarRelease
+> Task :expo:bundleLibRuntimeToDirRelease
+> Task :expo-modules-core:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :expo:syncReleaseLibJars
+> Task :expo:createFullJarRelease
+> Task :expo:bundleReleaseLocalLintAar
+> Task :expo:bundleReleaseAar
+> Task :expo:assembleRelease
+> Task :expo-modules-core:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-worklets:verifyReleaseResources
+> Task :react-native-worklets:assembleRelease

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#151126"/>
+      <stop offset="1" stop-color="#0A0813"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="0.5" stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#D8B4FE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.48" r="0.45">
+      <stop offset="0" stop-color="#A855F7" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#glow)"/>
+  <!-- enso ring, gap at top. center (512,490), r 268, stroke 56 -->
+  <path d="M 650 248 A 268 268 0 1 0 374 248"
+        fill="none" stroke="url(#ring)" stroke-width="56" stroke-linecap="round"/>
+  <!-- breath trace -->
+  <path d="M 294 490 H 390
+           C 410 490 415 490 425 445
+           C 435 400 460 400 470 455
+           L 495 560
+           C 505 605 530 605 540 555
+           C 550 515 575 495 600 515
+           C 620 530 625 545 640 505
+           C 650 470 665 455 678 490
+           L 690 530
+           C 700 560 725 545 730 515
+           H 806"
+        fill="none" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- observer dot -->
+  <circle cx="512" cy="222" r="37" fill="#D8B4FE"/>
+</svg>

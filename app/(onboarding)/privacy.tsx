@@ -32,7 +32,7 @@ export default function PrivacyOnboardingScreen() {
         <AppLogo size={64} />
         <Serif style={[styles.title, { color: c.ink }]}>Your privacy, first</Serif>
         <Text style={[styles.sub, { color: c.muted }]}>
-          MindTrace observes quietly — and only with your permission.
+          Wellness AI observes quietly – and only with your permission.
         </Text>
       </View>
       {ITEMS.map((it) => (

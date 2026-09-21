@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   CalmCard,
@@ -16,11 +16,16 @@ import { JournalModal } from '@/src/components/dashboard/JournalModal';
 import { MeditationTimerModal } from '@/src/components/dashboard/MeditationTimerModal';
 import { RemindersModal } from '@/src/components/dashboard/RemindersModal';
 import { WeeklyReportModal } from '@/src/components/dashboard/WeeklyReportModal';
+import { HelpMeNow } from '@/src/components/calm/HelpMeNow';
+import { FlipCard, OneThing, WeatherStrip } from '@/src/components/calm/play';
+import { Art, ArtTile } from '@/src/components/calm/art';
+import { useWhyFeeling } from '@/src/hooks/useWhy';
+import { useGarden } from '@/src/hooks/useGarden';
 import { useTheme } from '@/src/hooks/useTheme';
 import { useWellnessSummary } from '@/src/hooks/useWellnessSummary';
 import { refreshLatestSnapshot } from '@/src/services/wellness';
 import { useAuthStore } from '@/src/stores/authStore';
-import { hasUsageStatsPermission, requestUsageStatsPermission } from '@/modules/android-wellbeing';
+import { hasUsageStatsPermission, isModuleAvailable, requestUsageStatsPermission } from '@/modules/android-wellbeing';
 import { serif } from '@/src/theme/calm';
 import { fonts } from '@/src/theme/typography';
 
@@ -43,17 +48,23 @@ const AFFIRMATIONS = [
 export default function DashboardScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const setTheme = useAuthStore((state) => state.setTheme);
   const queryClient = useQueryClient();
   const { data, isRefetching, refetch } = useWellnessSummary();
+  const { insights: whyInsights } = useWhyFeeling();
+  const { data: garden } = useGarden();
+  const topWhy = whyInsights[0] ?? null;
   const { colors } = useTheme();
-  const { c } = useCalm();
+  const { c, isDark } = useCalm();
   void colors;
 
   const [journalVisible, setJournalVisible] = useState(false);
   const [meditationVisible, setMeditationVisible] = useState(false);
   const [weeklyReportVisible, setWeeklyReportVisible] = useState(false);
   const [remindersVisible, setRemindersVisible] = useState(false);
+  const [helpNowVisible, setHelpNowVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState(true);
+  const [wellbeingAvailable, setWellbeingAvailable] = useState(true);
 
   const dayIdx = new Date().getDate() % TIPS.length;
   const summary = data?.summary;
@@ -73,7 +84,13 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     const check = () => {
-      setHasPermission(Platform.OS === 'android' ? hasUsageStatsPermission() : true);
+      if (Platform.OS === 'android') {
+        setWellbeingAvailable(isModuleAvailable());
+        setHasPermission(hasUsageStatsPermission());
+      } else {
+        setWellbeingAvailable(true);
+        setHasPermission(true);
+      }
     };
     check();
     const sub = AppState.addEventListener('change', (s) => {
@@ -93,12 +110,14 @@ export default function DashboardScreen() {
 
   const trendIcon = (t?: number) =>
     t === undefined || t === null ? null : t >= 0 ? 'trending-up' : 'trending-down';
+  const upColor = isDark ? '#8FCA8F' : '#4E7A4E';
+  const downColor = isDark ? '#E08064' : '#B4432B';
 
   const tiles = [
-    { title: 'Mood', value: summary ? String(summary.moodScore) : '—', trend: summary?.moodTrend, tint: 'lavender' as const, icon: 'heart' as const },
-    { title: 'Sleep', value: summary ? `${summary.sleepHours}h` : '—', trend: summary?.sleepTrend, tint: 'mint' as const, icon: 'moon' as const },
-    { title: 'Activity', value: summary ? String(summary.activityLevel) : '—', trend: summary?.activityTrend, tint: 'peach' as const, icon: 'activity' as const },
-    { title: 'Stress', value: summary ? String(summary.stressIndex) : '—', trend: summary?.stressTrend ? -summary.stressTrend : summary?.stressTrend, tint: 'sage' as const, icon: 'zap' as const },
+    { title: 'Mood', value: summary ? String(summary.moodScore) : '—', trend: summary?.moodTrend, tint: 'lavender' as const, icon: 'heart' as const, art: <Art kind="heart" size={24} /> },
+    { title: 'Sleep', value: summary ? `${summary.sleepHours}h` : '—', trend: summary?.sleepTrend, tint: 'mint' as const, icon: 'moon' as const, art: <Art kind="moon" size={24} /> },
+    { title: 'Activity', value: summary ? String(summary.activityLevel) : '—', trend: summary?.activityTrend, tint: 'peach' as const, icon: 'activity' as const, art: <Art kind="path" size={24} /> },
+    { title: 'Stress', value: summary ? String(summary.stressIndex) : '—', trend: summary?.stressTrend ? -summary.stressTrend : summary?.stressTrend, tint: 'sage' as const, icon: 'zap' as const, art: <Art kind="waves" size={24} /> },
   ];
 
   const actions = [
@@ -122,24 +141,62 @@ export default function DashboardScreen() {
             <Serif style={[styles.hello, { color: c.ink }]}>Hi, {user?.displayName ?? 'Observer'}</Serif>
           </View>
         </View>
-        <Pressable
-          onPress={() => setRemindersVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Open reminders"
-          style={[styles.bell, { backgroundColor: c.surface, borderColor: c.line }]}
-        >
-          <Feather name="bell" size={17} color={c.ink} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => setTheme(isDark ? 'light' : 'dark')}
+            accessibilityRole="button"
+            accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            style={[styles.bell, { backgroundColor: c.surface, borderColor: c.line }]}
+          >
+            <Feather name={isDark ? 'sun' : 'moon'} size={17} color={c.ink} />
+          </Pressable>
+          <Pressable
+            onPress={() => setRemindersVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Open reminders"
+            style={[styles.bell, { backgroundColor: c.surface, borderColor: c.line }]}
+          >
+            <Feather name="bell" size={17} color={c.ink} />
+          </Pressable>
+        </View>
       </View>
 
-      {!hasPermission && Platform.OS === 'android' ? (
+      {Platform.OS === 'android' && !wellbeingAvailable ? (
+        <CalmCard tint="peach">
+          <Text style={[styles.permTitle, { color: c.ink }]}>Screen insights need a dev build</Text>
+          <Text style={[styles.permBody, { color: c.muted }]}>
+            The wellbeing module isn't in this build (Expo Go can't load custom native code). Rebuild with `npx expo run:android` to enable passive screen tracking.
+          </Text>
+          <Pressable
+            onPress={() =>
+              Alert.alert(
+                'Why is this needed?',
+                'Screen-time and rest windows come from Android UsageStats via our native module. Expo Go excludes custom native code by design — a development build includes it.'
+              )
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Learn why screen insights need a dev build"
+            style={[styles.permBtn, { backgroundColor: c.ink }]}
+          >
+            <Text style={[styles.permBtnText, { color: c.bg }]}>Why?</Text>
+          </Pressable>
+        </CalmCard>
+      ) : null}
+
+      {wellbeingAvailable && !hasPermission && Platform.OS === 'android' ? (
         <CalmCard tint="peach">
           <Text style={[styles.permTitle, { color: c.ink }]}>Enable Screen Time Insights</Text>
           <Text style={[styles.permBody, { color: c.muted }]}>
-            MindTrace needs Usage Statistics access to passively read screen duration and rest windows.
+            Wellness AI needs Usage Statistics access to passively read screen duration and rest windows.
           </Text>
           <Pressable
-            onPress={() => requestUsageStatsPermission()}
+            onPress={() => {
+              try {
+                requestUsageStatsPermission();
+              } catch {
+                Alert.alert('Could not open settings', 'Please enable Usage Access for Wellness AI in system Settings manually.');
+              }
+            }}
             accessibilityRole="button"
             accessibilityLabel="Grant usage access"
             style={[styles.permBtn, { backgroundColor: c.ink }]}
@@ -149,18 +206,19 @@ export default function DashboardScreen() {
         </CalmCard>
       ) : null}
 
-      <Serif style={[styles.section, { color: c.ink }]}>Your Condition</Serif>
-      <View style={styles.tileGrid}>
+      <WeatherStrip />
+
+      <Serif style={[styles.section, { color: c.ink }]}>Your Condition</Serif>      <View style={styles.tileGrid}>
         <View style={styles.tileRow}>
           {tiles.slice(0, 2).map((t) => (
             <View key={t.title} style={{ flex: 1 }}>
-              <StatTile value={t.value} label={t.title} icon={t.icon} tint={t.tint} />
+              <StatTile value={t.value} label={t.title} icon={t.icon} tint={t.tint} art={t.art} />
               {trendIcon(t.trend) ? (
                 <View style={styles.trendRow}>
                   <Feather
                     name={trendIcon(t.trend)!}
                     size={12}
-                    color={t.trend! >= 0 ? '#4E7A4E' : '#B4432B'}
+                    color={t.trend! >= 0 ? upColor : downColor}
                   />
                   <Text style={[styles.trendText, { color: c.muted }]}>
                     {Math.abs(t.trend!).toFixed(1)}%
@@ -173,13 +231,13 @@ export default function DashboardScreen() {
         <View style={styles.tileRow}>
           {tiles.slice(2).map((t) => (
             <View key={t.title} style={{ flex: 1 }}>
-              <StatTile value={t.value} label={t.title} icon={t.icon} tint={t.tint} />
+              <StatTile value={t.value} label={t.title} icon={t.icon} tint={t.tint} art={t.art} />
               {trendIcon(t.trend) ? (
                 <View style={styles.trendRow}>
                   <Feather
                     name={trendIcon(t.trend)!}
                     size={12}
-                    color={t.trend! >= 0 ? '#4E7A4E' : '#B4432B'}
+                    color={t.trend! >= 0 ? upColor : downColor}
                   />
                   <Text style={[styles.trendText, { color: c.muted }]}>
                     {Math.abs(t.trend!).toFixed(1)}%
@@ -197,6 +255,26 @@ export default function DashboardScreen() {
         <Text style={[styles.todayTip, { color: c.muted }]}>{TIPS[dayIdx]}</Text>
       </CalmCard>
 
+      {topWhy ? (
+        <Pressable
+          onPress={() => router.push('/why' as any)}
+          accessibilityRole="button"
+          accessibilityLabel="Why am I feeling this way"
+        >
+          <CalmCard tint="lavender">
+            <Text style={[styles.todayEyebrow, { color: c.muted }]}>WHY AM I FEELING THIS WAY?</Text>
+            <Serif style={[styles.todayText, { color: c.ink }]}>{topWhy.title}</Serif>
+            <Text style={[styles.todayTip, { color: c.muted }]} numberOfLines={2}>
+              {topWhy.explanation}
+            </Text>
+            <Text style={[styles.whyLink, { color: c.ink }]}>Explore the pattern →</Text>
+          </CalmCard>
+        </Pressable>
+      ) : null}
+
+      <OneThing />
+      <FlipCard />
+
       <View style={styles.actionRow}>
         {actions.map((a) => (
           <Pressable
@@ -211,6 +289,16 @@ export default function DashboardScreen() {
           </Pressable>
         ))}
       </View>
+
+      <Pressable
+        onPress={() => setHelpNowVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Help me now — immediate relief options"
+        style={[styles.helpNow, { backgroundColor: c.ink }]}
+      >
+        <Feather name="life-buoy" size={18} color={c.bg} />
+        <Text style={[styles.helpNowText, { color: c.bg }]}>Help Me Now</Text>
+      </Pressable>
 
       <Pressable
         onPress={() => router.push({ pathname: '/modal', params: { metric: 'wellness' } })}
@@ -248,6 +336,44 @@ export default function DashboardScreen() {
                 ))
               )}
             </View>
+          </View>
+        </CalmCard>
+      </Pressable>
+
+      <Pressable
+        onPress={() => router.push('/focus' as any)}
+        accessibilityRole="button"
+        accessibilityLabel="Open Focus Grove"
+      >
+        <CalmCard tint="mint">
+          <View style={styles.gardenRow}>
+            <ArtTile kind="leaf" size={48} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.todayEyebrow, { color: c.muted }]}>FOCUS GROVE</Text>
+              <Serif style={[styles.gardenText, { color: c.ink }]}>
+                Grow a tree while you focus
+              </Serif>
+            </View>
+            <Feather name="chevron-right" size={18} color={c.muted} />
+          </View>
+        </CalmCard>
+      </Pressable>
+
+      <Pressable
+        onPress={() => router.push('/garden' as any)}
+        accessibilityRole="button"
+        accessibilityLabel="Open your wellness garden"
+      >
+        <CalmCard tint="sage">
+          <View style={styles.gardenRow}>
+            <ArtTile kind="sprout" size={48} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.todayEyebrow, { color: c.muted }]}>WELLNESS GARDEN</Text>
+              <Serif style={[styles.gardenText, { color: c.ink }]}>
+                {garden ? `${garden.activeDays} of ${garden.windowDays} days engaged` : 'Your garden grows with you'}
+              </Serif>
+            </View>
+            <Feather name="chevron-right" size={18} color={c.muted} />
           </View>
         </CalmCard>
       </Pressable>
@@ -300,12 +426,14 @@ export default function DashboardScreen() {
         summaryData={summary}
       />
       <RemindersModal visible={remindersVisible} onClose={() => setRemindersVisible(false)} />
+      <HelpMeNow visible={helpNowVisible} onClose={() => setHelpNowVisible(false)} />
     </CalmScreen>
   );
 }
 
 const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerActions: { flexDirection: 'row', gap: 10 },
   profileCol: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 17, fontWeight: '800' },
@@ -326,11 +454,19 @@ const styles = StyleSheet.create({
   todayEyebrow: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.5 },
   todayText: { fontSize: 18, lineHeight: 24, marginTop: 4 },
   todayTip: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: 6 },
+  whyLink: { fontFamily: fonts.bold, fontSize: 13, marginTop: 8 },
+  gardenRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  gardenText: { fontSize: 17, lineHeight: 22, marginTop: 2 },
   actionRow: { flexDirection: 'row', gap: 10 },
   actionBtn: {
     flex: 1, borderWidth: 1, borderRadius: 18, minHeight: 76, alignItems: 'center', justifyContent: 'center', gap: 6,
   },
   actionLabel: { fontFamily: fonts.semiBold, fontSize: 12 },
+  helpNow: {
+    flexDirection: 'row', gap: 10, minHeight: 54, borderRadius: 999,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  helpNowText: { fontFamily: fonts.bold, fontSize: 15 },
   overviewRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   overviewLabel: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.2 },
   overviewValue: { fontFamily: serif, fontWeight: '700', fontSize: 38, lineHeight: 42 },

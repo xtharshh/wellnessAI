@@ -6,6 +6,8 @@ import {
   hasUsageStatsPermission,
   getSystemWellbeingMetrics,
 } from '@/modules/android-wellbeing';
+import { ensureStepWatcher, getCachedSteps } from '@/src/services/steps';
+import { syncWatchData } from '@/src/services/healthconnect';
 
 // ─── Real telemetry state (session-only, never seeded) ───
 let totalKeypresses = 0;
@@ -70,6 +72,10 @@ async function saveLastInteraction() {
 }
 
 export function initTelemetry() {
+  if (Platform.OS !== 'web') {
+    // Wearable/phone steps (pedometer incl. watch-synced steps on iOS).
+    ensureStepWatcher().catch(() => {});
+  }
   if (!accelerometerSubscription && Platform.OS !== 'web') {
     try {
       Accelerometer.isAvailableAsync()
@@ -140,6 +146,10 @@ export interface LiveMetrics {
     totalScrolls: number;
     motionMagnitude: number | null;
     motionSamples: number;
+    todaySteps: number | null;
+    watchSleepHours: number | null;
+    watchAvgHr: number | null;
+    watchActiveMinutes: number | null;
     androidScreenTime: number | null;
     androidUnlocks: number | null;
   };
@@ -177,8 +187,21 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
   const hasTypingData = totalKeypresses >= 5 && keypressIntervalCount >= 3;
   const hasInteractionData = totalClicks > 0 || totalScrolls > 0;
   const hasMotionData = motionSampleCount >= 3;
+  // Watch data first: Health Connect sleep beats inactivity estimates, and
+  // watch steps merge with pedometer steps. Cached (10-min TTL) inside.
+  const watch = await syncWatchData().catch(() => null);
+  const hasWatchData =
+    !!watch && (watch.steps > 0 || watch.sleepHours !== null || watch.activeMinutes > 0);
+  const todaySteps = Math.max(getCachedSteps(), watch?.steps ?? 0);
+  const hasStepData = todaySteps > 0;
 
-  const hasSufficientData = hasNativeData || hasTypingData || hasInteractionData || hasMotionData;
+  const hasSufficientData =
+    hasNativeData ||
+    hasTypingData ||
+    hasInteractionData ||
+    hasMotionData ||
+    hasStepData ||
+    hasWatchData;
 
   const empty: LiveMetrics = {
     hasSufficientData: false,
@@ -196,6 +219,10 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
       totalScrolls,
       motionMagnitude: null,
       motionSamples: motionSampleCount,
+      todaySteps: hasStepData ? todaySteps : null,
+      watchSleepHours: watch?.sleepHours ?? null,
+      watchAvgHr: watch?.avgHr ?? null,
+      watchActiveMinutes: watch && watch.activeMinutes > 0 ? watch.activeMinutes : null,
       androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
       androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
     },
@@ -204,9 +231,11 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
 
   if (!hasSufficientData) return empty;
 
-  // ─── Sleep: native OR real inactivity gap, else null ───
+  // ─── Sleep: watch session first, then native, then inactivity gap ───
   let sleepHours: number | null = null;
-  if (hasPermission && nativeMetrics.sleepHours > 0) {
+  if (watch?.sleepHours != null) {
+    sleepHours = watch.sleepHours;
+  } else if (hasPermission && nativeMetrics.sleepHours > 0) {
     sleepHours = Number(nativeMetrics.sleepHours.toFixed(1));
   } else {
     try {
@@ -252,9 +281,9 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
     }
   }
 
-  // ─── Activity: interaction + motion + native unlocks (only if any exist) ───
+  // ─── Activity: interaction + motion + native unlocks + real steps ───
   let activityLevel: number | null = null;
-  if (hasInteractionData || hasMotionData || hasNativeData) {
+  if (hasInteractionData || hasMotionData || hasNativeData || hasStepData) {
     const totalInteractions = totalClicks * 5 + totalScrolls * 2;
     const motionActivity = motionMagnitude !== null ? Math.min(motionMagnitude * 30, 50) : 0;
     let computed = 45 + Math.round(totalInteractions / 10) + Math.round(motionActivity);
@@ -262,6 +291,15 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
       computed += Math.round(
         Math.min(30, nativeMetrics.unlockCount * 2 + nativeMetrics.screenTimeMinutes / 10)
       );
+    }
+    if (hasStepData) {
+      // ~10k steps ≈ very active day. Steps lift the score but never fake it alone.
+      const stepActivity = Math.min(100, Math.round(30 + todaySteps / 120));
+      computed = Math.max(computed, stepActivity);
+    }
+    if (watch && watch.activeMinutes > 0) {
+      // Real workout minutes logged by the watch.
+      computed += Math.min(25, watch.activeMinutes);
     }
     activityLevel = Math.min(100, Math.max(5, computed));
   }
@@ -361,6 +399,10 @@ export async function getLiveMetrics(): Promise<LiveMetrics> {
       totalScrolls,
       motionMagnitude,
       motionSamples: motionSampleCount,
+      todaySteps: hasStepData ? todaySteps : null,
+      watchSleepHours: watch?.sleepHours ?? null,
+      watchAvgHr: watch?.avgHr ?? null,
+      watchActiveMinutes: watch && watch.activeMinutes > 0 ? watch.activeMinutes : null,
       androidScreenTime: hasPermission ? nativeMetrics.screenTimeMinutes : null,
       androidUnlocks: hasPermission ? nativeMetrics.unlockCount : null,
     },

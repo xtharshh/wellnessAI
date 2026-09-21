@@ -83,7 +83,8 @@ function localTriage(userMessage: string, summary: WellnessSummary | null): stri
   if (crisis) {
     return (
       'I hear you and this sounds serious. Please reach out now — free & confidential:\n' +
-      '• Call or Text 988 (US Suicide & Crisis Lifeline)\n• Text HOME to 741741 (Crisis Text Line)\n\n' +
+      '• Call or Text 988 (US Suicide & Crisis Lifeline)\n• Text HOME to 741741 (US Crisis Text Line)\n' +
+      '• India: AASRA 9820466726 (24x7) / iCall 9152987821\n\n' +
       'If you can, book a Live Doctor in the Counsellor tab or go to urgent care. You deserve immediate support.\n\nAI triage only — not a diagnosis.'
     );
   }
@@ -124,8 +125,19 @@ export async function sendDoctorMessage(
   return localTriage(message, summary);
 }
 
-export const CRISIS_RESOURCES = [
-  { label: 'Call or Text 988', detail: 'US Suicide & Crisis Lifeline', url: 'tel:988' },
-  { label: 'Text HOME to 741741', detail: 'Crisis Text Line', url: 'sms:741741' },
-  { label: 'findahelpline.com', detail: 'International helplines', url: 'https://findahelpline.com' },
+export interface CrisisResource {
+  region: string;
+  label: string;
+  detail: string;
+  url: string;
+}
+
+// Region-aware crisis directory (never US-only: India-first + international).
+export const CRISIS_RESOURCES: CrisisResource[] = [
+  { region: 'US', label: 'US: Call or Text 988', detail: 'Suicide & Crisis Lifeline', url: 'tel:988' },
+  { region: 'US', label: 'US: Text HOME to 741741', detail: 'Crisis Text Line', url: 'sms:741741' },
+  { region: 'India', label: 'India: AASRA 9820466726', detail: '24x7 helpline', url: 'tel:+919820466726' },
+  { region: 'India', label: 'India: iCall 9152987821', detail: 'Mon–Sat, 10am–8pm IST', url: 'tel:+919152987821' },
+  { region: 'India', label: 'India: Vandrevala 1860-2662-345', detail: '24x7 foundation helpline', url: 'tel:18602662345' },
+  { region: 'International', label: 'More countries: findahelpline.com', detail: 'Global directory', url: 'https://findahelpline.com' },
 ];

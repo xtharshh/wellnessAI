@@ -208,7 +208,7 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
   recs.push({
     id: 'med-1',
     title: '5-Minute Box Breathing Session',
-    creator: 'MindTrace Coaches',
+      creator: 'Wellness AI Coaches',
     category: 'meditation',
     description: 'Autonomic nervous system reset utilizing a 4-4-4-4 breathing cadence to suppress cortisol.',
     reason: `Recommended to balance your Stress Index (${stress}%)`,
@@ -218,7 +218,7 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
   recs.push({
     id: 'med-2',
     title: 'Deep Body Scan',
-    creator: 'MindTrace Coaches',
+      creator: 'Wellness AI Coaches',
     category: 'meditation',
     description: 'A guided relaxation practice focusing on releasing localized tension from the forehead to the feet.',
     reason: 'Recommended to release physical tension.',
@@ -230,7 +230,7 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
   recs.push({
     id: 'prod-1',
     title: 'Pomodoro Screen-Off Break',
-    creator: 'MindTrace Habits',
+      creator: 'Wellness AI Habits',
     category: 'productivity',
     description: 'Close your eyes and turn away from all light-emitting displays for 5 minutes after 25 minutes of focus.',
     reason: 'Recommended to lower eye strain indices.',
@@ -240,7 +240,7 @@ export async function getLifestyleRecommendations(userId: string): Promise<Lifes
   recs.push({
     id: 'stress-1',
     title: 'Vagus Nerve Cold Water Splash',
-    creator: 'MindTrace Habits',
+      creator: 'Wellness AI Habits',
     category: 'stress-relief',
     description: 'Splash cold water onto your face or hold an ice pack on your chest for 15 seconds to lower heart rate.',
     reason: `Recommended to decrease active anxiety triggers (${stress}%)`,

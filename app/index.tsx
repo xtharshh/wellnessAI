@@ -3,46 +3,41 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withRepeat,
   withSequence,
+  withTiming,
   Easing,
 } from 'react-native-reanimated';
-import Svg, { Text as SvgText, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
 import { AppLogo } from '@/src/components/ui/AppLogo';
 import { useAuthStore } from '@/src/stores/authStore';
 import { fonts } from '@/src/theme/typography';
+import { serif } from '@/src/theme/calm';
 
 export default function SplashScreenRoute() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
-  // Animations
   const logoOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(0.8);
+  const logoScale = useSharedValue(0.85);
   const textOpacity = useSharedValue(0);
-  const glowOpacity = useSharedValue(0.4);
+  const glow = useSharedValue(0.35);
 
   useEffect(() => {
-    // Entrance animations
-    logoOpacity.value = withTiming(1, { duration: 900, easing: Easing.out(Easing.ease) });
-    logoScale.value = withTiming(1, { duration: 950, easing: Easing.out(Easing.back(1.5)) });
-    
-    textOpacity.value = withTiming(1, { duration: 1100, easing: Easing.out(Easing.ease) });
-
-    // Pulse animation for the orbit background glow
-    glowOpacity.value = withRepeat(
+    logoOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.ease) });
+    logoScale.value = withTiming(1, { duration: 900, easing: Easing.out(Easing.back(1.4)) });
+    textOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.ease) });
+    glow.value = withRepeat(
       withSequence(
-        withTiming(0.65, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.4, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+        withTiming(0.6, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.35, { duration: 1600, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
     );
-  }, []);
+  }, [glow, logoOpacity, logoScale, textOpacity]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,94 +45,52 @@ export default function SplashScreenRoute() {
         router.replace('/landing');
         return;
       }
-      if (!user.privacyConsentAt) {
-        router.replace('/(onboarding)/privacy');
-        return;
-      }
-      if (!user.onboardingComplete) {
+      if (!user.privacyConsentAt || !user.onboardingComplete) {
         router.replace('/(onboarding)/privacy');
         return;
       }
       router.replace('/(tabs)/dashboard');
-    }, 2400);
+    }, 2200);
 
     return () => clearTimeout(timer);
   }, [router, user]);
 
-  const animatedLogoStyle = useAnimatedStyle(() => ({
+  const logoStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
     transform: [{ scale: logoScale.value }],
   }));
-
-  const animatedTextStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-  }));
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
+  const textStyle = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
 
   return (
-    <LinearGradient colors={['#160c2b', '#0f0a1c', '#07050d']} style={styles.container}>
-      {/* Concentric Orbit Circles */}
-      <View style={styles.orbitContainer} pointerEvents="none">
-        <Animated.View style={[styles.orbitCircle, styles.orbitOuter, animatedGlowStyle]} />
-        <View style={[styles.orbitCircle, styles.orbitMiddle]} />
-        <View style={[styles.orbitCircle, styles.orbitInner]} />
+    <LinearGradient colors={['#101915', '#0A100C', '#060906']} style={styles.container}>
+      {/* Breathing sage glow */}
+      <View style={styles.glowWrap} pointerEvents="none">
+        <Animated.View style={[styles.glow, glowStyle]} />
+        <View style={styles.ringLarge} />
+        <View style={styles.ringSmall} />
       </View>
 
-      {/* Central Content */}
-      <View style={styles.mainContent}>
-        {/* Animated Brand Logo */}
-        <Animated.View style={[animatedLogoStyle, styles.logoWrap]}>
-          <AppLogo size={90} />
+      {/* Centered brand column */}
+      <View style={styles.center}>
+        <Animated.View style={logoStyle}>
+          <AppLogo size={96} />
         </Animated.View>
-
-        {/* Brand Text */}
-        <Animated.View style={[styles.textContainer, animatedTextStyle]}>
-          {/* MindTrace Logo Text with Gradient */}
-          <View style={styles.brandTitleContainer}>
-            <Svg height="42" width="220" viewBox="0 0 220 42">
-              <Defs>
-                <SvgLinearGradient id="traceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <Stop offset="0%" stopColor="#7a9efc" />
-                  <Stop offset="100%" stopColor="#3de2b5" />
-                </SvgLinearGradient>
-              </Defs>
-              <SvgText
-                fill="#ffffff"
-                fontSize="32"
-                fontWeight="700"
-                fontFamily={fonts.semiBold}
-                x="0"
-                y="32"
-              >
-                Mind
-              </SvgText>
-              <SvgText
-                fill="url(#traceGrad)"
-                fontSize="32"
-                fontWeight="700"
-                fontFamily={fonts.semiBold}
-                x="84"
-                y="32"
-              >
-                Trace
-              </SvgText>
-            </Svg>
-          </View>
-
-          <Text style={styles.systemTagline}>AI WELLNESS SYSTEM</Text>
-          <Text style={styles.italicSubtitle}>Your quiet observer</Text>
+        <Animated.View style={[styles.wordmark, textStyle]}>
+          <Text style={styles.name}>
+            Wellness <Text style={styles.nameAccent}>AI</Text>
+          </Text>
+          <Text style={styles.tagline}>A KINDER YOU, EVERY DAY</Text>
+          <Text style={styles.sub}>Your personal wellness intelligence</Text>
         </Animated.View>
       </View>
 
-      {/* Pagination Dots at Bottom */}
-      <View style={styles.paginationContainer}>
-        <View style={[styles.dot, styles.activeDot]} />
+      {/* Progress dots */}
+      <Animated.View style={[styles.dots, textStyle]}>
+        <View style={[styles.dot, styles.dotActive]} />
         <View style={styles.dot} />
         <View style={styles.dot} />
-      </View>
+      </Animated.View>
     </LinearGradient>
   );
 }
@@ -148,79 +101,86 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  orbitContainer: {
+  glowWrap: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  orbitCircle: {
+  glow: {
     position: 'absolute',
-    borderRadius: 9999,
-    borderWidth: 1.2,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(120, 160, 110, 0.16)',
   },
-  orbitOuter: {
+  ringLarge: {
+    position: 'absolute',
     width: 380,
     height: 380,
-    borderColor: 'rgba(168, 85, 247, 0.05)',
+    borderRadius: 190,
+    borderWidth: 1,
+    borderColor: 'rgba(243, 234, 219, 0.07)',
   },
-  orbitMiddle: {
-    width: 280,
-    height: 280,
-    borderColor: 'rgba(168, 85, 247, 0.09)',
+  ringSmall: {
+    position: 'absolute',
+    width: 270,
+    height: 270,
+    borderRadius: 135,
+    borderWidth: 1,
+    borderColor: 'rgba(243, 234, 219, 0.10)',
   },
-  orbitInner: {
-    width: 180,
-    height: 180,
-    borderColor: 'rgba(168, 85, 247, 0.15)',
-  },
-  mainContent: {
+  center: {
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
+    paddingHorizontal: 32,
   },
-  logoWrap: {
-    marginBottom: 24,
-  },
-  textContainer: {
+  wordmark: {
     alignItems: 'center',
-    gap: 8,
+    marginTop: 26,
   },
-  brandTitleContainer: {
-    height: 42,
-    width: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
+  name: {
+    fontFamily: serif,
+    fontWeight: '700',
+    fontSize: 38,
+    color: '#F3EADB',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  systemTagline: {
+  nameAccent: {
+    color: '#9DBE8B',
+  },
+  tagline: {
     fontFamily: fonts.bold,
     fontSize: 11,
-    lineHeight: 14,
-    color: '#8b8ba3',
+    color: '#8FA38B',
     letterSpacing: 3,
-    marginTop: 6,
+    marginTop: 10,
+    textAlign: 'center',
   },
-  italicSubtitle: {
+  sub: {
     fontFamily: fonts.medium,
-    fontSize: 14,
-    lineHeight: 18,
-    color: '#5e5e7a',
+    fontSize: 13,
+    color: '#5E6E5C',
     fontStyle: 'italic',
+    marginTop: 6,
+    textAlign: 'center',
   },
-  paginationContainer: {
+  dots: {
+    position: 'absolute',
+    bottom: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    position: 'absolute',
-    bottom: 50,
   },
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#231e3d',
+    backgroundColor: '#2A362C',
   },
-  activeDot: {
-    backgroundColor: '#8b5cf6',
+  dotActive: {
+    backgroundColor: '#9DBE8B',
+    width: 22,
   },
 });

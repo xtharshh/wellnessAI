@@ -1,8 +1,14 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from 'expo-audio';
 
 import {
   CalmCard,
@@ -18,6 +24,7 @@ import { useAuthStore } from '@/src/stores/authStore';
 import { createJournalEntry, getJournals, type JournalEntry } from '@/src/services/journals';
 import { getSnapshots } from '@/src/services/wellness';
 import { apiFetch } from '@/src/services/apiClient';
+import { ArtTile, artForMood } from '@/src/components/calm/art';
 import { fonts } from '@/src/theme/typography';
 
 function Botanical() {
@@ -37,7 +44,6 @@ function Botanical() {
   );
 }
 
-const TILE_ICONS = ['message-circle', 'sun', 'moon', 'heart', 'star'] as const;
 const TILE_TINTS = ['lavender', 'periwinkle', 'mint', 'peach'] as const;
 
 export default function JournalScreen() {
@@ -72,16 +78,12 @@ export default function JournalScreen() {
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'MT';
 
-  const handleSave = async () => {
+  const persistEntry = async (content: string, tag: string) => {
     if (!user) return;
-    if (!text.trim()) {
-      Alert.alert('Write something', 'Journal text is required.');
-      return;
-    }
-    const emo = EMOTIONS.find((e) => e.tag === selected) ?? EMOTIONS[0];
+    const emo = EMOTIONS.find((e) => e.tag === tag) ?? EMOTIONS[0];
     setSaving(true);
     try {
-      await createJournalEntry(user.id, text.trim(), emo.score, emo.tag);
+      await createJournalEntry(user.id, content.trim(), emo.score, emo.tag);
       const history = await getSnapshots(user.id, 365);
       const last = history[history.length - 1];
       const stress =
@@ -106,11 +108,83 @@ export default function JournalScreen() {
       });
       setText('');
       setComposerOpen(false);
+      setVoiceMode('idle');
+      setVoiceText('');
       await load();
     } catch (e) {
       Alert.alert('Save failed', e instanceof Error ? e.message : 'Could not save.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!text.trim()) {
+      Alert.alert('Write something', 'Journal text is required.');
+      return;
+    }
+    await persistEntry(text, selected);
+  };
+
+  // ─── Voice journal: record → transcribe → review → save ───
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recState = useAudioRecorderState(recorder, 500);
+  const [voiceMode, setVoiceMode] = useState<'idle' | 'recording' | 'transcribing' | 'review'>('idle');
+  const [voiceText, setVoiceText] = useState('');
+  const [voiceMood, setVoiceMood] = useState('Happy');
+
+  const suggestMood = (t: string): string => {
+    const q = t.toLowerCase();
+    if (/\b(sad|cry|crying|down|lonely|depress|miss|grief)\b/.test(q)) return 'Sad';
+    if (/\b(stress|anxious|anxiety|worried|overwhelm|pressure|nervous|panic|tense)\b/.test(q)) return 'Stressed';
+    if (/\b(angry|furious|annoyed|frustrat|hate|mad|irritat)\b/.test(q)) return 'Angry';
+    if (/\b(excit|thrilled|awesome|pumped|amazing|wonderful|joy|happy|great|love)\b/.test(q)) return 'Happy';
+    return selected;
+  };
+
+  const startVoice = async () => {
+    try {
+      const perm = await requestRecordingPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Mic needed', 'Allow microphone access to dictate journal entries.');
+        return;
+      }
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setVoiceMode('recording');
+    } catch (e) {
+      Alert.alert('Could not record', e instanceof Error ? e.message : 'Microphone unavailable here.');
+    }
+  };
+
+  const stopVoice = async () => {
+    try {
+      await recorder.stop();
+      const uri = recorder.getStatus().url;
+      if (!uri) throw new Error('No audio captured.');
+      setVoiceMode('transcribing');
+      const blob = await (await fetch(uri)).blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const url = String(reader.result || '');
+          const parts = url.split(',');
+          if (parts.length < 2) reject(new Error('Audio encoding failed.'));
+          else resolve(parts[1]);
+        };
+        reader.onerror = () => reject(new Error('Audio encoding failed.'));
+        reader.readAsDataURL(blob);
+      });
+      const data = await apiFetch<{ text: string }>('/api/voice/transcribe', {
+        method: 'POST',
+        body: { audioBase64: base64, mimeType: 'audio/m4a' },
+      });
+      setVoiceText(data.text);
+      setVoiceMood(suggestMood(data.text));
+      setVoiceMode('review');
+    } catch (e) {
+      setVoiceMode('idle');
+      Alert.alert('Voice entry failed', e instanceof Error ? e.message : 'Please try again or type instead.');
     }
   };
 
@@ -170,17 +244,112 @@ export default function JournalScreen() {
         </View>
       </CalmCard>
 
-      <Pressable
-        onPress={() => setComposerOpen(!composerOpen)}
-        accessibilityRole="button"
-        accessibilityLabel={composerOpen ? 'Close check-in composer' : 'Write a new check-in'}
-        style={[styles.newEntry, { backgroundColor: c.surface, borderColor: c.line }]}
-      >
-        <Feather name={composerOpen ? 'chevron-up' : 'plus'} size={16} color={c.ink} />
-        <Text style={[styles.newEntryText, { color: c.ink }]}>
-          {composerOpen ? 'Close' : `New check-in as ${selected}`}
-        </Text>
-      </Pressable>
+      <View style={styles.entryActions}>
+        <Pressable
+          onPress={() => setComposerOpen(!composerOpen)}
+          accessibilityRole="button"
+          accessibilityLabel={composerOpen ? 'Close check-in composer' : 'Write a new check-in'}
+          style={[styles.newEntry, { backgroundColor: c.surface, borderColor: c.line }]}
+        >
+          <Feather name={composerOpen ? 'chevron-up' : 'plus'} size={16} color={c.ink} />
+          <Text style={[styles.newEntryText, { color: c.ink }]}>
+            {composerOpen ? 'Close' : `New check-in as ${selected}`}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={startVoice}
+          disabled={voiceMode === 'recording' || voiceMode === 'transcribing'}
+          accessibilityRole="button"
+          accessibilityLabel="Dictate a journal entry"
+          style={[styles.micBtn, { backgroundColor: c.ink, opacity: voiceMode === 'idle' || voiceMode === 'review' ? 1 : 0.6 }]}
+        >
+          <Feather name="mic" size={17} color={c.bg} />
+        </Pressable>
+      </View>
+
+      {voiceMode === 'recording' ? (
+        <CalmCard tint="peach">
+          <View style={styles.voiceRow}>
+            <View style={styles.recDot} />
+            <Text style={[styles.voiceTimer, { color: c.ink }]}>
+              Listening… {Math.floor((recState.durationMillis ?? 0) / 1000)}s
+            </Text>
+            <Pressable
+              onPress={stopVoice}
+              accessibilityRole="button"
+              accessibilityLabel="Stop recording"
+              style={[styles.stopBtn, { backgroundColor: c.ink }]}
+            >
+              <Feather name="square" size={14} color={c.bg} />
+              <Text style={[styles.stopText, { color: c.bg }]}>Done</Text>
+            </Pressable>
+          </View>
+          <Text style={[styles.voiceHint, { color: c.muted }]}>Speak naturally — pause anytime, tap Done to transcribe.</Text>
+        </CalmCard>
+      ) : null}
+
+      {voiceMode === 'transcribing' ? (
+        <CalmCard>
+          <View style={styles.voiceRow}>
+            <ActivityIndicator size="small" color={c.muted} />
+            <Text style={[styles.voiceTimer, { color: c.ink }]}>Transcribing…</Text>
+          </View>
+        </CalmCard>
+      ) : null}
+
+      {voiceMode === 'review' ? (
+        <CalmCard tint="mint">
+          <Text style={[styles.reviewLabel, { color: c.muted }]}>REVIEW YOUR WORDS — NOTHING SAVES UNTIL YOU APPROVE</Text>
+          <TextInput
+            value={voiceText}
+            onChangeText={setVoiceText}
+            multiline
+            style={[styles.input, { color: c.ink, backgroundColor: c.surface }]}
+            accessibilityLabel="Transcribed entry, editable"
+          />
+          <Text style={[styles.reviewLabel, { color: c.muted }]}>SUGGESTED MOOD — TAP TO CHANGE</Text>
+          <View style={styles.moodRow}>
+            {EMOTIONS.map((e) => {
+              const active = voiceMood === e.tag;
+              return (
+                <Pressable
+                  key={e.tag}
+                  onPress={() => setVoiceMood(e.tag)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Set mood ${e.tag}`}
+                  style={[
+                    styles.moodChip,
+                    { backgroundColor: active ? c.ink : c.surface, borderColor: c.line },
+                  ]}
+                >
+                  <Text style={styles.moodEmoji}>{e.emoji}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={styles.reviewActions}>
+            <Pressable
+              onPress={() => persistEntry(voiceText, voiceMood)}
+              disabled={saving || !voiceText.trim()}
+              accessibilityRole="button"
+              accessibilityLabel="Save voice entry"
+              style={[styles.saveVoiceBtn, { backgroundColor: c.ink, opacity: saving ? 0.6 : 1 }]}
+            >
+              <Text style={[styles.saveVoiceText, { color: c.bg }]}>
+                {saving ? 'Saving…' : `Save as ${voiceMood}`}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => { setVoiceMode('idle'); setVoiceText(''); }}
+              accessibilityRole="button"
+              accessibilityLabel="Discard voice entry"
+              style={styles.discardBtn}
+            >
+              <Text style={[styles.discardText, { color: c.muted }]}>Discard</Text>
+            </Pressable>
+          </View>
+        </CalmCard>
+      ) : null}
 
       {composerOpen ? (
         <CalmCard>
@@ -226,9 +395,8 @@ export default function JournalScreen() {
         </CalmCard>
       ) : null}
 
-      {visible.map((en, i) => {
-        const tint = TILE_TINTS[i % TILE_TINTS.length];
-        const icon = TILE_ICONS[i % TILE_ICONS.length];
+      {visible.map((en) => {
+        const tint = TILE_TINTS[visible.indexOf(en) % TILE_TINTS.length];
         const open = expandedId === en.id;
         return (
           <Pressable
@@ -239,9 +407,7 @@ export default function JournalScreen() {
           >
             <CalmCard tint={tint}>
               <View style={styles.entryRow}>
-                <View style={[styles.entryIcon, { backgroundColor: c.surface }]}>
-                  <Feather name={icon} size={20} color={c.ink} />
-                </View>
+                <ArtTile kind={artForMood(en.moodTag)} size={52} />
                 <View style={styles.entryText}>
                   <Text style={[styles.entryDate, { color: c.muted }]}>
                     {new Date(en.createdAt).toLocaleDateString(undefined, {
@@ -315,6 +481,7 @@ const styles = StyleSheet.create({
   },
   helpText: { fontFamily: fonts.semiBold, fontSize: 13 },
   newEntry: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -323,6 +490,31 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1.2,
   },
+  entryActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  micBtn: {
+    width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center',
+  },
+  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  recDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#C0392B' },
+  voiceTimer: { flex: 1, fontFamily: fonts.bold, fontSize: 14 },
+  stopBtn: {
+    flexDirection: 'row', gap: 6, alignItems: 'center', borderRadius: 999,
+    paddingHorizontal: 16, minHeight: 42,
+  },
+  stopText: { fontFamily: fonts.bold, fontSize: 13 },
+  voiceHint: { fontFamily: fonts.regular, fontSize: 12, marginTop: 8 },
+  reviewLabel: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.2, marginTop: 4 },
+  moodRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  moodChip: {
+    width: 46, height: 46, borderRadius: 23, borderWidth: 1.2,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  moodEmoji: { fontSize: 20 },
+  reviewActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  saveVoiceBtn: { flex: 1, borderRadius: 999, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  saveVoiceText: { fontFamily: fonts.bold, fontSize: 14 },
+  discardBtn: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 8 },
+  discardText: { fontFamily: fonts.semiBold, fontSize: 13 },
   newEntryText: { fontFamily: fonts.semiBold, fontSize: 14 },
   input: {
     minHeight: 96,
@@ -344,13 +536,6 @@ const styles = StyleSheet.create({
   seeAll: { fontFamily: fonts.medium, fontSize: 13, minHeight: 44, textAlignVertical: 'center' },
   emptyText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 19 },
   entryRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  entryIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   entryText: { flex: 1, gap: 4 },
   entryDate: { fontFamily: fonts.medium, fontSize: 11 },
   entrySnippet: { fontFamily: fonts.semiBold, fontSize: 14, lineHeight: 20 },

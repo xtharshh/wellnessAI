@@ -1,9 +1,14 @@
+import { Appearance } from 'react-native';
 import { create } from 'zustand';
 
 import * as authService from '@/src/services/auth';
 import * as recommendationsService from '@/src/services/recommendations';
 import { ensureSnapshots } from '@/src/services/wellness';
 import { UserProfile } from '@/src/types/wellness';
+
+export function systemTheme(): 'dark' | 'light' {
+  return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+}
 
 interface AuthState {
   user: UserProfile | null;
@@ -14,6 +19,8 @@ interface AuthState {
   hydrate: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  /** Finish login after an OAuth provider verified server-side (token already stored). */
+  completeOAuthLogin: (user: UserProfile) => Promise<void>;
   signOut: () => Promise<void>;
   acceptPrivacy: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -22,6 +29,8 @@ interface AuthState {
   updateEmail: (email: string) => Promise<void>;
   updateHealthProfile: (profileData: Partial<UserProfile>) => Promise<void>;
   setTheme: (theme: 'dark' | 'light') => Promise<void>;
+  /** Follow the OS appearance — only applies while logged out (account pref rules when signed in). */
+  applySystemTheme: () => void;
   clearError: () => void;
 }
 
@@ -51,14 +60,15 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  theme: 'light',
+  theme: systemTheme(),
   hydrated: false,
   loading: false,
   error: null,
 
   hydrate: async () => {
     let user = null;
-    let theme: 'dark' | 'light' = 'light';
+    // Logged-out default follows the OS; a signed-in account's saved pref wins below.
+    let theme: 'dark' | 'light' = systemTheme();
     try {
       user = await withTimeout(authService.getCurrentUser(), 5000);
       if (user) {
@@ -103,7 +113,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const user = await authService.signUp({ email, password, displayName });
       await bootstrapUserData(user.id);
-      set({ user, theme: 'light', loading: false });
+      // Keep the (system-derived) current appearance and persist it as the
+      // account preference, instead of forcing light mode on new users.
+      const theme = get().theme;
+      try {
+        const settings = await authService.getSettings(user.id);
+        await authService.saveSettings(user.id, { ...settings, theme });
+      } catch (e) {
+        console.error('Failed to persist signup theme preference:', e);
+      }
+      set({ user, theme, loading: false });
     } catch (error) {
       set({
         loading: false,
@@ -115,7 +134,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await authService.signOut();
-    set({ user: null, theme: 'light' });
+    set({ user: null, theme: systemTheme() });
+  },
+
+  completeOAuthLogin: async (user) => {
+    set({ loading: true, error: null });
+    try {
+      await bootstrapUserData(user.id);
+      const settings = await authService.getSettings(user.id);
+      const theme = (settings.theme === 'light' ? 'light' : 'dark') as 'dark' | 'light';
+      set({ user, theme, loading: false });
+    } catch (error) {
+      set({
+        loading: false,
+        error: error instanceof Error ? error.message : 'Sign in failed.',
+      });
+      throw error;
+    }
   },
 
   acceptPrivacy: async () => {
@@ -177,6 +212,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
     set({ theme });
+  },
+
+  applySystemTheme: () => {
+    const { user } = get();
+    if (!user) set({ theme: systemTheme() });
   },
 
   clearError: () => set({ error: null }),

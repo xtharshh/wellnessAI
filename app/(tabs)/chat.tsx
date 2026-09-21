@@ -17,22 +17,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Serif, useCalm } from '@/src/components/calm/kit';
 import { useAuthStore } from '@/src/stores/authStore';
-import { sendChatMessage, type ChatMessage } from '@/src/services/chatbot';
+import { sendChatMessage, isServerOnline, type ChatMessage } from '@/src/services/chatbot';
 import { sendDoctorMessage, type DoctorChatMessage } from '@/src/services/doctor';
 import { fonts } from '@/src/theme/typography';
 
 const QUICK_PROMPTS = [
-  'I feel stressed and mentally exhausted.',
-  'I cannot sleep properly.',
-  'What are some healthy habits?',
-  'Suggest an exercise for today.',
+  { label: 'Feeling stressed', message: 'I feel stressed and mentally exhausted.' },
+  { label: 'Sleep trouble', message: 'I cannot sleep properly.' },
+  { label: 'Healthy habits', message: 'What are some healthy habits?' },
+  { label: 'Exercise idea', message: 'Suggest an exercise for today.' },
 ];
 
 const DOCTOR_PROMPTS = [
-  'I have a headache and poor sleep — what should I watch for?',
-  'My stress is high lately, should I see a doctor?',
-  'I feel anxious before work — triage me.',
-  'When should I seek urgent care?',
+  { label: 'Headache + poor sleep', message: 'I have a headache and poor sleep — what should I watch for?' },
+  { label: 'High stress', message: 'My stress is high lately, should I see a doctor?' },
+  { label: 'Work anxiety', message: 'I feel anxious before work — triage me.' },
+  { label: 'Urgent care?', message: 'When should I seek urgent care?' },
 ];
 
 export default function ChatScreen() {
@@ -49,12 +49,18 @@ export default function ChatScreen() {
       sender: 'ai',
       text: isDoctor
         ? `Hello ${user?.displayName || 'there'}. I am your AI Doctor (triage only, not a diagnosis). Describe symptoms and I'll give a safe next step + when to see a live doctor.`
-        : `Hello ${user?.displayName || 'there'}. I am your MindTrace companion. Tell me how you're feeling and I'll suggest something kind for right now.`,
+        : `Hello ${user?.displayName || 'there'}. I am your Wellness AI companion. Tell me how you're feeling and I'll suggest something kind for right now.`,
       timestamp: new Date().toISOString(),
     },
   ]);
   const [inputText, setInputText] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [serverOnline, setServerOnline] = useState<boolean | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    isServerOnline().then(setServerOnline).catch(() => setServerOnline(false));
+  }, []);
 
   useEffect(() => {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
@@ -122,6 +128,24 @@ export default function ChatScreen() {
             <Serif style={[styles.title, { color: c.ink }]}>
               {isDoctor ? 'AI Doctor' : 'Chat'}
             </Serif>
+            <View style={styles.statusRow}>
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor:
+                      serverOnline === null ? c.faint : serverOnline ? '#4E7A4E' : '#C96A2E',
+                  },
+                ]}
+              />
+              <Text style={[styles.statusText, { color: c.muted }]}>
+                {serverOnline === null
+                  ? 'Checking…'
+                  : serverOnline
+                    ? 'AI online'
+                    : 'Offline • local mode'}
+              </Text>
+            </View>
           </View>
           <View style={[styles.avatar, { backgroundColor: c.limeSoft }]}>
             <Feather name="cpu" size={18} color={c.limeInk} />
@@ -145,6 +169,8 @@ export default function ChatScreen() {
           {messages.map((m) => {
             const mine = m.sender === 'user';
             const action = !mine ? actionFor(m.text) : null;
+            const isLong = m.text.length > 280;
+            const expanded = !!expandedIds[m.id];
             return (
               <View key={m.id} style={[styles.row, mine ? styles.rowRight : styles.rowLeft]}>
                 <View
@@ -155,7 +181,24 @@ export default function ChatScreen() {
                       : { backgroundColor: c.surface, borderColor: c.line, borderBottomLeftRadius: 6 },
                   ]}
                 >
-                  <Text style={[styles.msgText, { color: mine ? c.bg : c.ink }]}>{m.text}</Text>
+                  <Text
+                    style={[styles.msgText, { color: mine ? c.bg : c.ink }]}
+                    numberOfLines={isLong && !expanded ? 5 : undefined}
+                  >
+                    {m.text}
+                  </Text>
+                  {isLong ? (
+                    <Pressable
+                      onPress={() => setExpandedIds((prev) => ({ ...prev, [m.id]: !prev[m.id] }))}
+                      accessibilityRole="button"
+                      accessibilityLabel={expanded ? 'Show less' : 'Read more'}
+                      style={styles.moreBtn}
+                    >
+                      <Text style={[styles.moreText, { color: mine ? c.bg : c.muted }]}>
+                        {expanded ? 'Show less ▲' : 'Read more ▼'}
+                      </Text>
+                    </Pressable>
+                  ) : null}
                   {action ? (
                     <Pressable
                       onPress={action.go}
@@ -188,14 +231,14 @@ export default function ChatScreen() {
         >
           {prompts.map((p) => (
             <Pressable
-              key={p}
-              onPress={() => handleSend(p)}
+              key={p.label}
+              onPress={() => handleSend(p.message)}
               accessibilityRole="button"
-              accessibilityLabel={`Ask: ${p}`}
+              accessibilityLabel={`Ask: ${p.label}`}
               style={[styles.prompt, { backgroundColor: c.surface, borderColor: c.line }]}
             >
               <Text style={[styles.promptText, { color: c.ink }]} numberOfLines={1}>
-                {p}
+                {p.label}
               </Text>
             </Pressable>
           ))}
@@ -236,6 +279,9 @@ const styles = StyleSheet.create({
   },
   eyebrow: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.2 },
   title: { fontSize: 24 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  statusDot: { width: 7, height: 7, borderRadius: 3.5 },
+  statusText: { fontFamily: fonts.semiBold, fontSize: 11 },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   disclaimer: {
     flexDirection: 'row', gap: 8, marginHorizontal: 20, marginTop: 10,
@@ -248,10 +294,12 @@ const styles = StyleSheet.create({
   rowLeft: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 11, borderRadius: 18, borderWidth: 1, borderColor: 'transparent' },
   msgText: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  moreBtn: { marginTop: 6, alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
+  moreText: { fontFamily: fonts.bold, fontSize: 12 },
   actionBtn: { marginTop: 10, borderRadius: 999, paddingVertical: 9, alignItems: 'center' },
   actionText: { fontFamily: fonts.bold, fontSize: 13 },
   prompts: { paddingHorizontal: 20, gap: 8, paddingVertical: 8 },
-  prompt: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, minHeight: 44, justifyContent: 'center', maxWidth: 260 },
+  prompt: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, minHeight: 40, maxHeight: 40, justifyContent: 'center', maxWidth: 210 },
   promptText: { fontFamily: fonts.medium, fontSize: 12 },
   inputRow: { paddingHorizontal: 20, paddingBottom: 110, paddingTop: 4 },
   inputBox: {

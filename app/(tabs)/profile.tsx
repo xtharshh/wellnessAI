@@ -11,6 +11,18 @@ import { useTheme } from '@/src/hooks/useTheme';
 import { useWellnessSummary } from '@/src/hooks/useWellnessSummary';
 import { useAuthStore } from '@/src/stores/authStore';
 import { getSettings, saveSettings } from '@/src/services/auth';
+import { NotificationService, STORAGE_KEYS } from '@/src/services/notificationService';
+import { getStepStatus, requestStepPermission, type StepStatus } from '@/src/services/steps';
+import {
+  connectWatch,
+  disconnectWatch,
+  getWatchState,
+  openWatchSettings,
+  openWatchStore,
+  syncWatchData,
+  type WatchData,
+  type WatchState,
+} from '@/src/services/healthconnect';
 import type { UserProfile, UserSettings } from '@/src/types/wellness';
 import { fonts } from '@/src/theme/typography';
 
@@ -44,6 +56,41 @@ export default function ProfileScreen() {
     theme: 'light',
   });
 
+  // Reminders (same engine as the dashboard modal — lives here on Settings too)
+  const [breaksEnabled, setBreaksEnabled] = useState(true);
+  const [hydrationEnabled, setHydrationEnabled] = useState(true);
+  const [breakInterval, setBreakInterval] = useState(45);
+  const [hydrationTarget, setHydrationTarget] = useState(2500);
+  const [reminderBusy, setReminderBusy] = useState(false);
+
+  // Wearables / connected devices
+  const [stepStatus, setStepStatus] = useState<StepStatus | null>(null);
+  const [watchState, setWatchState] = useState<WatchState | null>(null);
+  const [watchData, setWatchData] = useState<WatchData | null>(null);
+  const [watchBusy, setWatchBusy] = useState(false);
+
+  const refreshSteps = async () => {
+    try {
+      setStepStatus(await getStepStatus());
+    } catch {
+      setStepStatus(null);
+    }
+  };
+
+  const refreshWatch = async () => {
+    try {
+      const state = await getWatchState();
+      setWatchState(state);
+      if (state === 'connected') {
+        setWatchData(await syncWatchData());
+      } else {
+        setWatchData(null);
+      }
+    } catch {
+      setWatchState(null);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     // Real values only — no mockup defaults.
@@ -61,6 +108,20 @@ export default function ProfileScreen() {
       setSettings(s);
       if (s.theme && s.theme !== theme) setTheme(s.theme);
     });
+    refreshSteps();
+    refreshWatch();
+    (async () => {
+      try {
+        const be = await AsyncStorage.getItem(STORAGE_KEYS.BREAKS_ENABLED);
+        const he = await AsyncStorage.getItem(STORAGE_KEYS.HYDRATION_ENABLED);
+        const bi = await AsyncStorage.getItem(STORAGE_KEYS.BREAK_INTERVAL);
+        const ht = await AsyncStorage.getItem(STORAGE_KEYS.HYDRATION_TARGET);
+        if (be !== null) setBreaksEnabled(be === 'true');
+        if (he !== null) setHydrationEnabled(he === 'true');
+        if (bi !== null) setBreakInterval(parseInt(bi, 10) || 45);
+        if (ht !== null) setHydrationTarget(parseInt(ht, 10) || 2500);
+      } catch {}
+    })();
     (async () => {
       if (!user.avatarUrl) {
         const cached = await AsyncStorage.getItem(`mindtrace_cached_avatar_${user.id}`);
@@ -129,6 +190,43 @@ export default function ProfileScreen() {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleSaveReminders = async () => {
+    setReminderBusy(true);
+    try {
+      const res = await NotificationService.saveAndSchedule(
+        breaksEnabled,
+        hydrationEnabled,
+        breakInterval,
+        hydrationTarget
+      );
+      Alert.alert(res.success ? 'Reminders saved' : 'Notice', res.text);
+    } finally {
+      setReminderBusy(false);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const res = await NotificationService.sendTestNotification();
+    Alert.alert(res.success ? 'Test sent' : 'Notice', res.text);
+  };
+
+  const handleConnectWatch = async () => {
+    setWatchBusy(true);
+    try {
+      const res = await connectWatch();
+      Alert.alert(res.ok ? 'Watch connected' : 'Could not connect', res.message);
+      await refreshWatch();
+      await refreshSteps();
+    } finally {
+      setWatchBusy(false);
+    }
+  };
+
+  const handleDisconnectWatch = async () => {
+    await disconnectWatch();
+    await refreshWatch();
   };
 
   const field = (label: string, value: string, set: (v: string) => void, extra?: object) => (
@@ -264,6 +362,190 @@ export default function ProfileScreen() {
         )}
       </CalmCard>
 
+      <Serif style={[styles.section, { color: c.ink }]}>Connected devices</Serif>
+      <CalmCard>
+        <View style={styles.deviceRow}>
+          <Feather name="watch" size={20} color={c.ink} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.deviceTitle, { color: c.ink }]}>
+              {watchState === 'connected' && watchData
+                ? `${watchData.steps.toLocaleString()} steps • ${watchData.sleepHours != null ? `${watchData.sleepHours}h sleep` : 'no sleep yet'}${watchData.avgHr != null ? ` • ${watchData.avgHr} bpm` : ''}`
+                : stepStatus && stepStatus.todaySteps > 0
+                  ? `${stepStatus.todaySteps.toLocaleString()} steps today`
+                  : 'Phone + watch steps'}
+            </Text>
+            <Text style={[styles.deviceSub, { color: c.muted }]}>
+              {watchState === null || watchState === undefined
+                ? 'Checking watch bridge…'
+                : watchState === 'connected'
+                  ? `Synced ${watchData ? new Date(watchData.syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'just now'} from Health Connect. Galaxy / Pixel watches sync automatically.`
+                  : watchState === 'needs-install'
+                    ? 'Health Connect is missing or outdated — install it to link your watch.'
+                    : watchState === 'missing-native'
+                      ? 'Watch sync needs a dev build (Expo Go excludes the bridge). Phone steps still work below.'
+                      : watchState === 'unavailable'
+                        ? 'This device cannot run Health Connect. Phone steps still work below.'
+                        : watchState === 'unsupported'
+                          ? 'On iPhone your Apple Watch syncs through the phone automatically — step counting below covers it.'
+                          : 'Link your Galaxy / Pixel watch through Health Connect for sleep, heart rate and workouts.'}
+            </Text>
+            {!watchState || watchState === 'not-connected' ? (
+              <Text style={[styles.deviceSub, { color: c.muted, marginTop: 6 }]}>
+                {stepStatus && stepStatus.todaySteps > 0
+                  ? `Phone pedometer: ${stepStatus.todaySteps.toLocaleString()} steps today.`
+                  : 'Phone pedometer covers basic step counting meanwhile.'}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+
+        {watchState === 'connected' ? (
+          <View style={styles.watchActions}>
+            <Pressable
+              onPress={() => syncWatchData(true).then(setWatchData)}
+              accessibilityRole="button"
+              accessibilityLabel="Sync watch now"
+              style={[styles.connectBtn, { backgroundColor: c.ink }]}
+            >
+              <Text style={[styles.connectText, { color: c.bg }]}>Sync now</Text>
+            </Pressable>
+            <Pressable
+              onPress={openWatchSettings}
+              accessibilityRole="button"
+              accessibilityLabel="Open Health Connect settings"
+              style={[styles.testBtn, { borderColor: c.line }]}
+            >
+              <Text style={[styles.testText, { color: c.ink }]}>Manage</Text>
+            </Pressable>
+            <Pressable
+              onPress={handleDisconnectWatch}
+              accessibilityRole="button"
+              accessibilityLabel="Disconnect watch"
+              style={styles.testBtn}
+            >
+              <Feather name="x" size={15} color={c.muted} />
+            </Pressable>
+          </View>
+        ) : watchState === 'needs-install' ? (
+          <Pressable
+            onPress={openWatchStore}
+            accessibilityRole="button"
+            accessibilityLabel="Install Health Connect"
+            style={[styles.connectBtn, { backgroundColor: c.ink }]}
+          >
+            <Text style={[styles.connectText, { color: c.bg }]}>Install Health Connect</Text>
+          </Pressable>
+        ) : watchState === 'not-connected' ? (
+          <Pressable
+            onPress={handleConnectWatch}
+            disabled={watchBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Connect your watch"
+            style={[styles.connectBtn, { backgroundColor: c.ink, opacity: watchBusy ? 0.6 : 1 }]}
+          >
+            <Feather name="watch" size={15} color={c.bg} />
+            <Text style={[styles.connectText, { color: c.bg }]}>
+              {watchBusy ? 'Connecting…' : 'Connect watch'}
+            </Text>
+          </Pressable>
+        ) : watchState === 'unsupported' ||
+          watchState === 'missing-native' ||
+          watchState === 'unavailable' ? (
+          <Pressable
+            onPress={async () => {
+              const ok = await requestStepPermission();
+              if (!ok) {
+                Alert.alert(
+                  'Motion permission needed',
+                  'Allow physical activity access so Wellness AI can count steps from your phone and paired watch.'
+                );
+              }
+              await refreshSteps();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Enable step counting"
+            style={[styles.connectBtn, { backgroundColor: c.ink }]}
+          >
+            <Text style={[styles.connectText, { color: c.bg }]}>Enable step counting</Text>
+          </Pressable>
+        ) : null}
+      </CalmCard>
+
+      <Serif style={[styles.section, { color: c.ink }]}>Reminders</Serif>
+      <CalmCard>
+        {toggleRow('clock', 'Screen break reminders', breaksEnabled, setBreaksEnabled)}
+        {breaksEnabled && (
+          <View style={styles.chipRow}>
+            {[30, 45, 60, 90].map((m) => {
+              const active = breakInterval === m;
+              return (
+                <Pressable
+                  key={m}
+                  onPress={() => setBreakInterval(m)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Break every ${m} minutes`}
+                  style={[
+                    styles.chip,
+                    { backgroundColor: active ? c.ink : c.surface, borderColor: c.line },
+                  ]}
+                >
+                  <Text style={[styles.chipText, { color: active ? c.bg : c.ink }]}>{m}m</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+        {toggleRow('droplet', 'Hydration reminders', hydrationEnabled, setHydrationEnabled)}
+        {hydrationEnabled && (
+          <View style={styles.chipRow}>
+            {[1500, 2000, 2500, 3000].map((ml) => {
+              const active = hydrationTarget === ml;
+              return (
+                <Pressable
+                  key={ml}
+                  onPress={() => setHydrationTarget(ml)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Hydration target ${(ml / 1000).toFixed(1)} liters`}
+                  style={[
+                    styles.chip,
+                    { backgroundColor: active ? c.ink : c.surface, borderColor: c.line },
+                  ]}
+                >
+                  <Text style={[styles.chipText, { color: active ? c.bg : c.ink }]}>
+                    {(ml / 1000).toFixed(1)}L
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+        <View style={styles.reminderActions}>
+          <Pressable
+            onPress={handleSaveReminders}
+            disabled={reminderBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Save reminder settings"
+            style={[styles.saveBtn, { backgroundColor: c.ink, opacity: reminderBusy ? 0.6 : 1 }]}
+          >
+            <Text style={[styles.saveText, { color: c.bg }]}>
+              {reminderBusy ? 'Saving…' : 'Save reminders'}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleTestNotification}
+            accessibilityRole="button"
+            accessibilityLabel="Send test notification"
+            style={[styles.testBtn, { borderColor: c.line }]}
+          >
+            <Feather name="bell" size={15} color={c.ink} />
+            <Text style={[styles.testText, { color: c.ink }]}>Test</Text>
+          </Pressable>
+        </View>
+        <Text style={[styles.reminderNote, { color: c.muted }]}>
+          Reminders pop up as system notifications, even with the app closed. Needs a dev build (not Expo Go) plus system permission.
+        </Text>
+      </CalmCard>
+
       <InkButton
         label="Sign out"
         onPress={async () => {
@@ -297,4 +579,28 @@ const styles = StyleSheet.create({
   twoCol: { flexDirection: 'row', gap: 10 },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52 },
   toggleLabel: { flex: 1, fontFamily: fonts.semiBold, fontSize: 14 },
+  deviceRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  deviceTitle: { fontFamily: fonts.bold, fontSize: 15 },
+  deviceSub: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  connectBtn: {
+    flexDirection: 'row', gap: 8,
+    borderRadius: 999, minHeight: 46, alignItems: 'center', justifyContent: 'center', marginTop: 12,
+  },
+  connectText: { fontFamily: fonts.bold, fontSize: 14 },
+  watchActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  chipRow: { flexDirection: 'row', gap: 8, marginVertical: 6, flexWrap: 'wrap' },
+  chip: {
+    borderWidth: 1.2, borderRadius: 999, paddingHorizontal: 16, minHeight: 42,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  chipText: { fontFamily: fonts.bold, fontSize: 13 },
+  reminderActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  saveBtn: { flex: 1, borderRadius: 999, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  saveText: { fontFamily: fonts.bold, fontSize: 14 },
+  testBtn: {
+    flexDirection: 'row', gap: 6, borderWidth: 1.2, borderRadius: 999,
+    paddingHorizontal: 18, minHeight: 48, alignItems: 'center', justifyContent: 'center',
+  },
+  testText: { fontFamily: fonts.bold, fontSize: 14 },
+  reminderNote: { fontFamily: fonts.regular, fontSize: 11, lineHeight: 16, marginTop: 10 },
 });

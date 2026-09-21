@@ -89,7 +89,7 @@ function buildTemplates(s: any): Built[] {
   recs.push({
     title: 'Review your weekly wellness trace',
     body: exercisePayload(
-      `Your composite wellness score is ${s.wellnessScore}. Check Trends to spot patterns MindTrace can help you optimize.`,
+      `Your composite wellness score is ${s.wellnessScore}. Check Trends to spot patterns Wellness AI can help you optimize.`,
       {
         name: 'Mindful Posture Check',
         duration: '1 min',
@@ -112,7 +112,7 @@ async function buildWithOpenAI(s: any): Promise<Built[] | null> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return null;
   try {
-    const prompt = `You are MindTrace AI, an expert behavioral therapist. Analyze this 14-day wellness trace summary:
+    const prompt = `You are Wellness AI, an expert behavioral therapist. Analyze this 14-day wellness trace summary:
 - Wellness Score: ${s.wellnessScore}/100
 - Mood: ${s.moodScore}/100 (trend: ${s.moodTrend}%)
 - Sleep: ${s.sleepHours} hours (trend: ${s.sleepTrend}%)

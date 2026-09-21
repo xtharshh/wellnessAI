@@ -287,7 +287,16 @@ export const NotificationService = {
           }
 
           if (scheduled.length > 0) {
-            scheduledText = `Settings saved. Active notifications scheduled: ${scheduled.join(' & ')}.`;
+            // Verify against the OS scheduler so the message reflects reality.
+            let verified = scheduled.length;
+            try {
+              const pending = await N.getAllScheduledNotificationsAsync();
+              verified = pending.length;
+            } catch {}
+            scheduledText =
+              verified > 0
+                ? `Done — ${verified} notification${verified === 1 ? '' : 's'} active (${scheduled.join(' & ')}). They'll pop up even with the app closed.`
+                  : 'Settings saved, but the system shows 0 scheduled. Please allow notifications for Wellness AI in system Settings, then save again.';
           }
         } else {
           scheduledText = 'Settings saved, but notifications permission was denied. Please enable them in your system settings.';
@@ -310,7 +319,7 @@ export const NotificationService = {
         }
         if (typeof window !== 'undefined' && 'Notification' in window) {
           try {
-            new Notification('MindTrace Test Alert 🔔', {
+            new Notification('Wellness AI Test Alert 🔔', {
               body: 'Great news! Your reminders and alerts system is configured correctly.',
             });
           } catch (e) {
@@ -331,7 +340,7 @@ export const NotificationService = {
 
       await N.scheduleNotificationAsync({
         content: {
-          title: 'MindTrace Test Alert 🔔',
+            title: 'Wellness AI Test Alert 🔔',
           body: 'Great news! Your reminders and alerts system is configured correctly.',
           sound: true,
         },

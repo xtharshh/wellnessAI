@@ -49,7 +49,7 @@ export function WeeklyReportModal({ visible, onClose, seriesData, summaryData }:
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+        <View style={[styles.modalContainer, { backgroundColor: c.surface, borderColor: c.line }]}>
           
           {/* Header */}
           <View style={styles.header}>

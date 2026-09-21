@@ -237,7 +237,7 @@ export function MeditationTimerModal({ visible, onClose }: MeditationTimerModalP
             <View style={[styles.tipBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.outline }]}>
               <Feather name="info" size={14} color={colors.primary} />
               <Text style={[styles.tipText, { color: colors.onSurfaceVariant }]}>
-                Meditation stabilizes autonomic stress, decreasing the bio-typing tension signals monitored by MindTrace.
+                Meditation stabilizes autonomic stress, decreasing the bio-typing tension signals monitored by Wellness AI.
               </Text>
             </View>
           </View>

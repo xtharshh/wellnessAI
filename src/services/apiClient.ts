@@ -47,6 +47,8 @@ interface FetchOpts {
   body?: unknown;
   /** default true — pass false for public endpoints (doctors directory) */
   auth?: boolean;
+  /** request timeout ms (default 12000 — failed servers must fail fast, never hang hydration) */
+  timeoutMs?: number;
 }
 
 export async function apiFetch<T>(path: string, opts: FetchOpts = {}): Promise<T> {
@@ -56,15 +58,23 @@ export async function apiFetch<T>(path: string, opts: FetchOpts = {}): Promise<T
     if (!token) throw new ApiError(401, 'Not signed in.');
     headers.Authorization = `Bearer ${token}`;
   }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 12000);
   let res: Response;
   try {
     res = await fetch(`${apiBaseUrl()}${path}`, {
       method: opts.method ?? 'GET',
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      signal: ctrl.signal,
     });
-  } catch {
+  } catch (e) {
+    if ((e as any)?.name === 'AbortError') {
+      throw new ApiError(0, 'Server is taking too long. Is the API running and reachable?');
+    }
     throw new ApiError(0, 'Cannot reach the server. Check your connection and API URL.');
+  } finally {
+    clearTimeout(timer);
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

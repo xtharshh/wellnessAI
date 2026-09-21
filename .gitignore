@@ -13,7 +13,6 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
-<<<<<<< HEAD
 .apk
 android/app/build/*
 modules/**/android/build/
@@ -23,12 +22,10 @@ modules/**/android/.cxx/
 android/app/.externalNativeBuild/
 android/app/.cxx/
 android/*
-=======
-.env 
 *.env
-.env.example
-
->>>>>>> b152a8cb259e896a594b89b4d14cc344d8a6fa0e
+# Release signing (never commit)
+*.keystore
+release-keystore.pass
 # Native
 .kotlin/
 *.orig.*

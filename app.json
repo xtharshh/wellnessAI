@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "MindTrace AI",
+    "name": "Wellness AI",
     "slug": "mindtrace-ai",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
     "android": {
       "package": "com.mindtraceai.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0A0813",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -22,6 +22,11 @@
       "permissions": [
         "android.permission.PACKAGE_USAGE_STATS",
         "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_EXERCISE",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE"
       ]
@@ -39,13 +44,24 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#111318"
+          "backgroundColor": "#0A0813"
         }
       ],
       "expo-web-browser",
       "expo-font",
       "expo-status-bar",
-      "expo-image"
+      "expo-image",
+      "react-native-health-connect",
+      "expo-audio",
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

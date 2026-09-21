@@ -10,9 +10,10 @@ import {
   View,
 } from 'react-native';
 
-import { CalmCard, CalmScreen, GhostButton, InkButton, Serif, useCalm } from '@/src/components/calm/kit';
+import { CalmCard, CalmScreen, GhostButton, GoogleButton, InkButton, Serif, useCalm } from '@/src/components/calm/kit';
 import { AppLogo } from '@/src/components/ui/AppLogo';
 import { useAuthStore } from '@/src/stores/authStore';
+import { useGoogleSignIn } from '@/src/services/oauth';
 import { trackKeyPress } from '@/src/services/realAnalytics';
 import { fonts } from '@/src/theme/typography';
 
@@ -32,20 +33,30 @@ export default function LoginScreen() {
 
   const { c } = useCalm();
 
+  const routeAfterLogin = () => {
+    const current = useAuthStore.getState().user ?? user;
+    if (!current?.privacyConsentAt) {
+      router.replace('/(onboarding)/privacy');
+    } else {
+      router.replace('/(tabs)/dashboard');
+    }
+  };
+
   const handleLogin = async () => {
     clearError();
     try {
       await signIn(email.trim(), password);
-      const current = useAuthStore.getState().user ?? user;
-      if (!current?.privacyConsentAt) {
-        router.replace('/(onboarding)/privacy');
-      } else {
-        router.replace('/(tabs)/dashboard');
-      }
+      routeAfterLogin();
     } catch {
       // error handled in store
     }
   };
+
+  const completeOAuthLogin = useAuthStore((state) => state.completeOAuthLogin);
+  const google = useGoogleSignIn(async (u) => {
+    await completeOAuthLogin(u);
+    routeAfterLogin();
+  });
 
   const fieldBorder = (focused: boolean) => (focused ? c.ink : c.line);
 
@@ -116,6 +127,15 @@ export default function LoginScreen() {
         ) : (
           <InkButton label="Sign In" onPress={handleLogin} icon="arrow-right" />
         )}
+
+        <View style={styles.orRow}>
+          <View style={[styles.orLine, { backgroundColor: c.line }]} />
+          <Text style={[styles.orText, { color: c.muted }]}>or</Text>
+          <View style={[styles.orLine, { backgroundColor: c.line }]} />
+        </View>
+
+        <GoogleButton label="Continue with Google" onPress={google.signIn} loading={google.loading} />
+        {google.error ? <Text style={[styles.error, { color: c.danger }]}>{google.error}</Text> : null}
       </CalmCard>
 
       <View style={styles.footer}>
@@ -164,6 +184,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 12,
   },
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
+  orLine: { flex: 1, height: 1 },
+  orText: { fontFamily: fonts.medium, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',

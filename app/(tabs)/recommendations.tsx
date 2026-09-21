@@ -12,6 +12,7 @@ import {
   Serif,
   useCalm,
 } from '@/src/components/calm/kit';
+import { ArtTile, artForCategory } from '@/src/components/calm/art';
 import { useRecommendations } from '@/src/hooks/useRecommendations';
 import { fonts } from '@/src/theme/typography';
 
@@ -74,10 +75,13 @@ export default function RecommendationsScreen() {
           <Pressable key={rec.id} onPress={() => setExpandedId(open ? null : rec.id)} accessibilityRole="button">
             <CalmCard>
               <View style={styles.planHead}>
-                <View style={[styles.catPill, { backgroundColor: c.limeSoft }]}>
-                  <Text style={[styles.catText, { color: c.limeInk }]}>{rec.category}</Text>
+                <ArtTile kind={artForCategory(rec.category)} size={40} />
+                <View style={{ flex: 1 }}>
+                  <View style={[styles.catPill, { backgroundColor: c.limeSoft, alignSelf: 'flex-start' }]}>
+                    <Text style={[styles.catText, { color: c.limeInk }]}>{rec.category}</Text>
+                  </View>
+                  <Text style={[styles.planTitle, { color: c.ink, marginTop: 4 }]}>{rec.title}</Text>
                 </View>
-                <Text style={[styles.planTitle, { color: c.ink }]}>{rec.title}</Text>
                 <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color={c.muted} />
               </View>
               {open ? (

@@ -16,6 +16,7 @@ import {
   useCalm,
   type DayItem,
 } from '@/src/components/calm/kit';
+import { Art } from '@/src/components/calm/art';
 import { useWellnessSummary } from '@/src/hooks/useWellnessSummary';
 import { getLiveMetrics } from '@/src/services/realAnalytics';
 import { fonts } from '@/src/theme/typography';
@@ -117,12 +118,14 @@ export default function AIInsightsScreen() {
             label="Stress Level"
             icon="activity"
             tint="mint"
+            art={<Art kind="waves" size={24} />}
           />
           <StatTile
             value={`${anxietyDays}X`}
             label="Anxiety Frequency"
             icon="heart"
             tint="lavender"
+            art={<Art kind="heart" size={24} />}
           />
         </View>
         <View style={styles.tileRow}>
@@ -131,12 +134,14 @@ export default function AIInsightsScreen() {
             label="Sleep Quality"
             icon="moon"
             tint="periwinkle"
+            art={<Art kind="moon" size={24} />}
           />
           <StatTile
             value={focusVal !== null ? `${focusVal}%` : '—'}
             label="Focus Stability"
             icon="target"
             tint="limeSoft"
+            art={<Art kind="stars" size={24} />}
           />
         </View>
       </View>

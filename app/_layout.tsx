@@ -3,7 +3,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-naviga
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { Appearance, StatusBar } from 'react-native';
 
 import { AppProviders } from '@/src/providers/AppProviders';
 import { useRealtimeSync } from '@/src/hooks/useRealtimeSync';
@@ -50,6 +50,10 @@ function AppWithTheme() {
         <Stack.Screen name="(auth)/signup" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="ai-insights" />
+        <Stack.Screen name="why" />
+        <Stack.Screen name="garden" />
+        <Stack.Screen name="focus" />
+        <Stack.Screen name="constellations" />
         <Stack.Screen name="perfect-plan" />
         <Stack.Screen name="telemetry" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: true, title: 'Metric Detail' }} />
@@ -61,6 +65,7 @@ function AppWithTheme() {
 export default function RootLayout() {
   const hydrate = useAuthStore((state) => state.hydrate);
   const hydrated = useAuthStore((state) => state.hydrated);
+  const applySystemTheme = useAuthStore((state) => state.applySystemTheme);
 
   // Locally bundled fonts (assets/fonts) — no runtime network download,
   // so Expo Go / offline devices can't fail here the way remote Google
@@ -79,6 +84,14 @@ export default function RootLayout() {
       console.error('[RootLayout] Hydration failed:', err);
     });
   }, [hydrate]);
+
+  // Follow OS light/dark while logged out (account preference rules once signed in).
+  useEffect(() => {
+    const sub = Appearance.addChangeListener(() => {
+      applySystemTheme();
+    });
+    return () => sub.remove();
+  }, [applySystemTheme]);
 
   useEffect(() => {
     if (fontError) {

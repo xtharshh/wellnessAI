@@ -1,4 +1,4 @@
-# MindTrace AI Wellness System
+# Wellness AI — Your Personal Wellness Intelligence
 
 Mobile wellness app built from the Google Stitch **MindTrace AI Wellness System** designs.
 

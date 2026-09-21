@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CalmCard, CalmScreen, InkButton, Serif, useCalm } from '@/src/components/calm/kit';
+import { ArtTile, artForCategory } from '@/src/components/calm/art';
 import { useExercises } from '@/src/hooks/useExercises';
 import { fonts } from '@/src/theme/typography';
 
@@ -86,6 +87,7 @@ export default function ExercisesScreen() {
           >
             <CalmCard tint={tintFor(ex.category)}>
               <View style={styles.cardHead}>
+                <ArtTile kind={artForCategory(ex.category)} size={46} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.exName, { color: c.ink }]}>{ex.name}</Text>
                   <Text style={[styles.exMeta, { color: c.muted }]}>

@@ -15,7 +15,9 @@ interface MusicSuggestion {
 }
 
 // ─── System Prompt (used only for complex OpenAI calls) ──────────────
-const SYSTEM_PROMPT = `You are MindTrace AI, a compassionate, professional mental wellness companion embedded inside a mobile wellness app called "WellnessAI". You passively observe digital wellness signals (screen time, typing dynamics, sleep patterns, activity levels) to support users' mental wellbeing.
+const SYSTEM_PROMPT = `You are Wellness AI, a compassionate, professional mental wellness
+companion embedded inside a mobile wellness app called
+"Wellness AI". You passively observe digital wellness signals (screen time, typing dynamics, sleep patterns, activity levels) to support users' mental wellbeing.
 
 Your personality:
 - Warm, empathetic, and non-judgmental
@@ -51,6 +53,24 @@ async function callServerChat(
   } catch {
     return null;
   }
+}
+
+// ─── Server reachability probe (cached 60s; drives the online indicator) ──
+let onlineCache: { at: number; online: boolean } | null = null;
+
+export async function isServerOnline(): Promise<boolean> {
+  if (onlineCache && Date.now() - onlineCache.at < 60000) return onlineCache.online;
+  try {
+    const { apiBaseUrl } = await import('./apiClient');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    const res = await fetch(`${apiBaseUrl()}/api/health`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    onlineCache = { at: Date.now(), online: res.ok };
+  } catch {
+    onlineCache = { at: Date.now(), online: false };
+  }
+  return onlineCache.online;
 }
 
 // ─── Music Suggestions Pool ────────────────────────────────────
@@ -174,6 +194,26 @@ const KEYWORDS: Record<string, string[]> = {
     'suggest music', 'suggest a song', 'recommend music', 'recommend a song',
     'play something', 'music suggestion', 'something to listen to',
     'suggest a playlist', 'what should i listen to',
+  ],
+
+  // ── Conversational (offline-friendly) ──
+  greeting: [
+    'hello', 'hey there', 'good morning', 'good afternoon', 'good evening',
+    'greetings', 'how are you', 'hey!', 'hello!', 'hi there', 'namaste',
+  ],
+  identity: [
+    'who are you', 'your name', 'what are you', 'about yourself',
+    'what can you do', 'how do you work',
+  ],
+  help_request: [
+    'help me', 'i need help', 'help', 'what should i do', 'guide me',
+    'support me', 'options',
+  ],
+  gratitude: [
+    'thank you', 'thanks', 'thx', 'appreciate it', 'grateful for you',
+  ],
+  farewell: [
+    'bye', 'goodbye', 'good night', 'see you', 'talk later', 'take care',
   ],
 };
 
@@ -511,6 +551,96 @@ const RESPONSES: Record<string, ResponseCategory> = {
     ],
   },
 
+  greeting: {
+    openers: [
+      "Hello! 👋 It's really good to see you here. How are you feeling right now?",
+      "Hey there! 🌟 Thanks for checking in. What's on your mind today?",
+      "Hi! 💜 Whether today is heavy or light, I'm glad you stopped by. How can I support you?",
+    ],
+    insights: [
+      "Checking in — even with a quick hello — is a tiny wellness habit. Noticing your state is the first step to caring for it.",
+      "A brief pause to say how you feel builds self-awareness, which research links to better stress recovery.",
+    ],
+    exercises: [
+      "🌬️ One-Breath Reset (30 sec):\n• Inhale slowly through your nose for 4 counts\n• Hold for 2 counts\n• Exhale through your mouth for 6 counts\n• Notice one thing you can hear right now",
+      "✍️ 30-Second Check-in:\n• Open your Journal tab\n• Rate your mood 1-10 and write one line about why\n•Takes half a minute and reveals patterns over weeks",
+    ],
+    closings: [
+      "You can tell me things like \"I feel stressed\", \"help me sleep\", or \"suggest an exercise\". What's going on?",
+      "I'm listening — in your own words, how has today been?",
+    ],
+  },
+
+  identity: {
+    openers: [
+      "I'm Wellness AI, your quiet wellness companion 🌿 I passively notice patterns in your daily rhythm and help you respond kindly.",
+      "Great question! I'm the AI friend inside your Wellness AI app — part observer, part coach, always on your side.",
+    ],
+    insights: [
+      "I combine what your device senses (typing flow, movement, rest windows) with what you tell me, so suggestions fit your actual day.",
+      "Everything I notice stays yours — on-device first, private by design, and I never diagnose or judge.",
+    ],
+    exercises: [
+      "🔍 Try me out (1 min):\n• Tell me your current mood in one sentence\n• Ask me for a 2-minute exercise\n• Open the dashboard to see what I've passively observed",
+    ],
+    closings: [
+      "Want the full tour? Try the Breathwork Timer, log in your Journal, or ask me for today's exercise.",
+      "Go ahead — tell me how you're feeling and I'll show you what I can do!",
+    ],
+  },
+
+  help_request: {
+    openers: [
+      "I'm right here with you. 🤝 Let's figure out the smallest helpful next step together.",
+      "Of course — that's exactly what I'm here for. Tell me a little more so I can point you well.",
+    ],
+    insights: [
+      "When everything feels like a lot, shrinking the problem to one tiny action is the fastest relief.",
+      "You don't need the perfect plan — you need one kind step. I'll help you pick it.",
+    ],
+    exercises: [
+      "🧭 Pick-your-path (1 min):\n• Overwhelmed → try the 5-4-3-2-1 grounding: name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste\n• Tired → splash cold water on your face + 3 slow breaths\n• Restless → 2-minute walk, no phone\n• Okay-ish → write one gratitude line in your Journal",
+    ],
+    closings: [
+      "Which one fits right now — overwhelmed, tired, restless, or okay-ish? Reply in a word and I'll guide you.",
+      "If anything feels urgent or unsafe, use the SOS button in the Counsellor tab right away. Otherwise, I'm here.",
+    ],
+  },
+
+  gratitude: {
+    openers: [
+      "You're so welcome! 💜 It genuinely makes my circuits happy to help.",
+      "Anytime! 🌟 Showing up for yourself is the real work — I'm just cheering you on.",
+    ],
+    insights: [
+      "Noticing what's helping — and saying thanks — reinforces the habit loop that keeps you coming back to it.",
+    ],
+    exercises: [
+      "✨ Lock it in (1 min):\n• Open your Journal and write what helped today\n• Give yourself one specific compliment out loud\n•Future-you will thank present-you when re-reading this",
+    ],
+    closings: [
+      "Keep going — small steps compound. Need anything else today?",
+      "I'll be here whenever you need. Want a closing breathing round together?",
+    ],
+  },
+
+  farewell: {
+    openers: [
+      "Goodbye for now! 🌙 Be gentle with yourself out there.",
+      "Take care! 💜 I'll keep quietly watching over your patterns until next time.",
+    ],
+    insights: [
+      "Ending the day with intention — even a quick goodbye — helps your mind file today away neatly.",
+    ],
+    exercises: [
+      "🌙 Sign-off stretch (1 min):\n• Roll your shoulders back 5 times\n• One slow inhale, one longer exhale\n• Set a screen-break reminder so tomorrow starts rested",
+    ],
+    closings: [
+      "Sleep well or have a wonderful rest of your day. Come back anytime!",
+      "Remember: I'm one tap away in the chat tab whenever you need me. 💜",
+    ],
+  },
+
   default: {
     openers: [
       "I'm here to support you! Let me know how you're feeling, or try one of these wellness activities.",
@@ -557,9 +687,10 @@ function crisisResponse(): string {
   return (
     "I hear you, and I want you to know this is a safe space. However, what you're describing sounds serious, and I want to make sure you get the right support.\n\n" +
     "Please reach out now — free & confidential:\n" +
-    "• 📞 Call or Text 988 (US/Canada Suicide & Crisis Lifeline)\n" +
-    "• 💬 Text HOME to 741741 (Crisis Text Line)\n" +
-    "• 🌐 Visit findahelpline.com for international resources\n\n" +
+    "• 📞 US: Call or Text 988 (Suicide & Crisis Lifeline)\n" +
+    "• 💬 US: Text HOME to 741741 (Crisis Text Line)\n" +
+    "• 📞 India: AASRA 9820466726 (24x7) / iCall 9152987821\n" +
+    "• 🌐 More countries: findahelpline.com\n\n" +
     "You are not alone. There are trained professionals ready to help you right now. 💙"
   );
 }

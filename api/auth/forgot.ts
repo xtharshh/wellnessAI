@@ -40,9 +40,9 @@ export default route(['POST'], async (req: VercelRequest, res: VercelResponse) =
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESET_FROM_EMAIL ?? 'MindTrace <no-reply@mindtrace.ai>',
+        from: process.env.RESET_FROM_EMAIL ?? 'Wellness AI <no-reply@wellnessai.app>',
         to: parsed.data.email,
-        subject: 'Reset your MindTrace password',
+        subject: 'Reset your Wellness AI password',
         text: `Use this code within 30 minutes to reset your password: ${token}\n\n(Enter it in the app${appUrl ? ` or visit ${appUrl}` : ''}.)`,
       }),
     });

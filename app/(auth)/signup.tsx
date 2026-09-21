@@ -10,9 +10,10 @@ import {
   View,
 } from 'react-native';
 
-import { CalmCard, CalmScreen, GhostButton, InkButton, Serif, useCalm } from '@/src/components/calm/kit';
+import { CalmCard, CalmScreen, GhostButton, GoogleButton, InkButton, Serif, useCalm } from '@/src/components/calm/kit';
 import { AppLogo } from '@/src/components/ui/AppLogo';
 import { useAuthStore } from '@/src/stores/authStore';
+import { useGoogleSignIn } from '@/src/services/oauth';
 import { trackKeyPress } from '@/src/services/realAnalytics';
 import { fonts } from '@/src/theme/typography';
 
@@ -33,6 +34,17 @@ export default function SignupScreen() {
   const [focused, setFocused] = useState<string | null>(null);
 
   const { c } = useCalm();
+
+  const completeOAuthLogin = useAuthStore((state) => state.completeOAuthLogin);
+  const google = useGoogleSignIn(async (u) => {
+    await completeOAuthLogin(u);
+    const current = useAuthStore.getState().user;
+    if (!current?.privacyConsentAt) {
+      router.replace('/(onboarding)/privacy');
+    } else {
+      router.replace('/(tabs)/dashboard');
+    }
+  });
 
   const handleSignup = async () => {
     clearError();
@@ -168,6 +180,17 @@ export default function SignupScreen() {
         ) : (
           <InkButton label="Create Account" onPress={handleSignup} icon="arrow-right" />
         )}
+
+        <View style={styles.orRow}>
+          <View style={[styles.orLine, { backgroundColor: c.line }]} />
+          <Text style={[styles.orText, { color: c.muted }]}>or</Text>
+          <View style={[styles.orLine, { backgroundColor: c.line }]} />
+        </View>
+
+        <GoogleButton label="Continue with Google" onPress={google.signIn} loading={google.loading} />
+        {google.error ? (
+          <Text style={[styles.error, { color: c.danger }]}>{google.error}</Text>
+        ) : null}
       </CalmCard>
 
       <View style={styles.footer}>
@@ -225,6 +248,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 14,
   },
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
+  orLine: { flex: 1, height: 1 },
+  orText: { fontFamily: fonts.medium, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',

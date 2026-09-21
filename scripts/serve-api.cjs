@@ -74,6 +74,8 @@ const ROUTES = [
   ['GET', /^\/api\/snapshots$/, 'snapshots.js'],
   ['POST', /^\/api\/snapshots$/, 'snapshots.js'],
   ['GET', /^\/api\/summary$/, 'summary.js'],
+  ['GET', /^\/api\/insights\/feedback$/, 'insights/feedback.js'],
+  ['POST', /^\/api\/insights\/feedback$/, 'insights/feedback.js'],
   ['GET', /^\/api\/recommendations$/, 'recommendations.js'],
   ['POST', /^\/api\/recommendations\/generate$/, 'recommendations/generate.js'],
   ['*', /^\/api\/recommendations\/([^/]+)$/, 'recommendations/[id].js', 'id'],
@@ -91,6 +93,7 @@ const ROUTES = [
   ['PATCH', /^\/api\/appointments\/([^/]+)$/, 'appointments/[id].js', 'id'],
   ['POST', /^\/api\/chat$/, 'chat.js'],
   ['POST', /^\/api\/doctor-chat$/, 'doctor-chat.js'],
+  ['POST', /^\/api\/voice\/transcribe$/, 'voice/transcribe.js'],
 ];
 
 async function main() {

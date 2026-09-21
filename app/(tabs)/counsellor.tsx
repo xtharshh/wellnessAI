@@ -10,6 +10,7 @@ import {
   Serif,
   useCalm,
 } from '@/src/components/calm/kit';
+import { ArtTile } from '@/src/components/calm/art';
 import { useWellnessSummary } from '@/src/hooks/useWellnessSummary';
 import { useAuthStore } from '@/src/stores/authStore';
 import { CRISIS_RESOURCES, getAppointments, getDoctors, type Appointment, type Doctor } from '@/src/services/doctor';
@@ -68,7 +69,7 @@ export default function CounsellorScreen() {
           style={{ flex: 1 }}
         >
           <CalmCard tint="sage">
-            <Feather name="heart" size={18} color={c.ink} />
+            <ArtTile kind="lotus" size={44} />
             <Text style={[styles.topTitle, { color: c.ink }]}>Self-care</Text>
             <Text style={[styles.topSub, { color: c.muted }]}>
               {(exercises || []).length} real practices
@@ -82,7 +83,7 @@ export default function CounsellorScreen() {
           style={{ flex: 1 }}
         >
           <CalmCard tint="lavender">
-            <Feather name="users" size={18} color={c.ink} />
+            <ArtTile kind="heart" size={44} />
             <Text style={[styles.topTitle, { color: c.ink }]}>Guided support</Text>
             <Text style={[styles.topSub, { color: c.muted }]}>
               {doctors.length ? `${doctors.length} live` : 'AI Doctor + SOS'}
