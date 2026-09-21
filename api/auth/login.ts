@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from '../_lib/db';
-import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http';
-import { createSession, mapUser, verifyPassword } from '../_lib/auth';
+import { db } from '../_lib/db.js';
+import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http.js';
+import { createSession, mapUser, verifyPassword } from '../_lib/auth.js';
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),

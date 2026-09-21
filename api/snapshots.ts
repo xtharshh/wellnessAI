@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from './_lib/db';
-import { HttpError, readJson, route } from './_lib/http';
-import { requireUser } from './_lib/auth';
+import { db } from './_lib/db.js';
+import { HttpError, readJson, route } from './_lib/http.js';
+import { requireUser } from './_lib/auth.js';
 
 function mapSnapshot(row: any) {
   return {

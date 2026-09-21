@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from './_lib/db';
-import { HttpError, readJson, route } from './_lib/http';
-import { requireUser } from './_lib/auth';
-import { mapLifestyle } from './_lib/mappers';
+import { db } from './_lib/db.js';
+import { HttpError, readJson, route } from './_lib/http.js';
+import { requireUser } from './_lib/auth.js';
+import { mapLifestyle } from './_lib/mappers.js';
 
 const itemSchema = z.object({
   title: z.string().trim().min(1).max(300),

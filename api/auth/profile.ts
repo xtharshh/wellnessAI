@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from '../_lib/db';
-import { HttpError, readJson, route } from '../_lib/http';
-import { mapUser, requireUser } from '../_lib/auth';
+import { db } from '../_lib/db.js';
+import { HttpError, readJson, route } from '../_lib/http.js';
+import { mapUser, requireUser } from '../_lib/auth.js';
 
 // Real columns this time — no JSON-in-display_name hack.
 const schema = z.object({

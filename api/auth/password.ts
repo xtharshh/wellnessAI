@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from '../_lib/db';
-import { HttpError, readJson, route } from '../_lib/http';
-import { hashPassword, requireUser, verifyPassword } from '../_lib/auth';
+import { db } from '../_lib/db.js';
+import { HttpError, readJson, route } from '../_lib/http.js';
+import { hashPassword, requireUser, verifyPassword } from '../_lib/auth.js';
 
 // Password change (authenticated). Forgot-password email reset requires
 // RESEND_API_KEY — see /api/auth/forgot.ts.
@@ -20,7 +20,7 @@ export default route(['POST'], async (req: VercelRequest, res: VercelResponse) =
 
   const sql = db();
   const rows = await sql`select password_hash from users where id = ${user.id} limit 1`;
-  const { verifyPassword } = await import('../_lib/auth');
+  const { verifyPassword } = await import('../_lib/auth.js');
   if (!(await verifyPassword(parsed.data.currentPassword, rows[0].password_hash))) {
     throw new HttpError(401, 'Current password is incorrect.');
   }

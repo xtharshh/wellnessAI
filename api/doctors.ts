@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { db } from './_lib/db';
-import { route } from './_lib/http';
-import { mapDoctor } from './_lib/mappers';
+import { db } from './_lib/db.js';
+import { route } from './_lib/http.js';
+import { mapDoctor } from './_lib/mappers.js';
 
 // Public directory — no auth required to browse clinicians.
 export default route(['GET'], async (_req: VercelRequest, res: VercelResponse) => {

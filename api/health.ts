@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { route } from './_lib/http';
-import { db } from './_lib/db';
+import { route } from './_lib/http.js';
+import { db } from './_lib/db.js';
 
 export default route(['GET'], async (_req: VercelRequest, res: VercelResponse) => {
   // Read probe against Neon — proves wiring without writing.

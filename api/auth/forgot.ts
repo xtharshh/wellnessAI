@@ -2,8 +2,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from '../_lib/db';
-import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http';
+import { db } from '../_lib/db.js';
+import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http.js';
 
 // Forgot-password: issues a single-use reset token. Delivery needs an email
 // provider — if RESEND_API_KEY is set we send via Resend, otherwise 503 with

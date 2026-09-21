@@ -2,9 +2,9 @@ import { randomBytes } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { db } from '../_lib/db';
-import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http';
-import { createSession, hashPassword, mapUser } from '../_lib/auth';
+import { db } from '../_lib/db.js';
+import { HttpError, clientIp, rateLimit, readJson, route } from '../_lib/http.js';
+import { createSession, hashPassword, mapUser } from '../_lib/auth.js';
 
 const schema = z.object({
   provider: z.literal('google'),

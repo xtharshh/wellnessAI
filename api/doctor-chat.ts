@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { HttpError, readJson, route } from './_lib/http';
-import { requireUser } from './_lib/auth';
-import { db } from './_lib/db';
+import { HttpError, readJson, route } from './_lib/http.js';
+import { requireUser } from './_lib/auth.js';
+import { db } from './_lib/db.js';
 
 const msgSchema = z.object({
   message: z.string().trim().min(1).max(4000),

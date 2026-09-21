@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 
-import { HttpError, readJson, route } from '../_lib/http';
-import { requireUser } from '../_lib/auth';
+import { HttpError, readJson, route } from '../_lib/http.js';
+import { requireUser } from '../_lib/auth.js';
 
 const schema = z.object({
   // Base64-encoded audio (m4a/mp3/wav). Capped well under Whisper's 25MB.

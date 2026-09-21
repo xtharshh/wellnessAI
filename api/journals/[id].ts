@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { db } from '../_lib/db';
-import { HttpError, route } from '../_lib/http';
-import { requireUser } from '../_lib/auth';
+import { db } from '../_lib/db.js';
+import { HttpError, route } from '../_lib/http.js';
+import { requireUser } from '../_lib/auth.js';
 
 export default route(['DELETE'], async (req: VercelRequest, res: VercelResponse) => {
   const user = await requireUser(req);

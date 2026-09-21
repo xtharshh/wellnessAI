@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { db } from './_lib/db';
-import { route } from './_lib/http';
-import { requireUser } from './_lib/auth';
+import { db } from './_lib/db.js';
+import { route } from './_lib/http.js';
+import { requireUser } from './_lib/auth.js';
 
 function pctChange(cur: number, prev: number): number {
   if (!prev) return 0;

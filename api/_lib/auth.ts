@@ -2,8 +2,8 @@ import { createHash, randomBytes, scrypt as _scrypt, timingSafeEqual } from 'nod
 import { promisify } from 'node:util';
 import type { VercelRequest } from '@vercel/node';
 
-import { db } from './db';
-import { HttpError, getBearer } from './http';
+import { db } from './db.js';
+import { HttpError, getBearer } from './http.js';
 
 const scrypt = promisify(_scrypt);
 
