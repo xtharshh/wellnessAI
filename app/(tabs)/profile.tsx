@@ -158,38 +158,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSelectAvatar = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Denied', 'Gallery access is required to change your profile picture.');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.3,
-        base64: true,
-      });
-
-      if (!result.canceled && result.assets && result.assets[0].base64) {
-        const base64Str = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        setIsUpdating(true);
-        await updateAvatar(base64Str);
-        if (user) {
-          await AsyncStorage.setItem(`mindtrace_cached_avatar_${user.id}`, base64Str);
-        }
-        Alert.alert('Success', 'Profile picture updated.');
-      }
-    } catch (err) {
-      Alert.alert('Error', 'Failed to update photo: ' + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const persistSettings = async (next: UserSettings) => {
     setSettings(next);
     if (user) await saveSettings(user.id, next);
