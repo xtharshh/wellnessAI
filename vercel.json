@@ -2,6 +2,22 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/auth/:path*", "destination": "/api/auth" },
+    { "source": "/api/settings", "destination": "/api/data" },
+    { "source": "/api/snapshots", "destination": "/api/data" },
+    { "source": "/api/summary", "destination": "/api/data" },
+    { "source": "/api/lifestyle", "destination": "/api/data" },
+    { "source": "/api/insights/:path*", "destination": "/api/data" },
+    { "source": "/api/recommendations/:path*", "destination": "/api/content" },
+    { "source": "/api/journals/:path*", "destination": "/api/content" },
+    { "source": "/api/exercises/:path*", "destination": "/api/content" },
+    { "source": "/api/doctors", "destination": "/api/booking" },
+    { "source": "/api/appointments/:path*", "destination": "/api/booking" },
+    { "source": "/api/chat", "destination": "/api/ai" },
+    { "source": "/api/doctor-chat", "destination": "/api/ai" },
+    { "source": "/api/voice/:path*", "destination": "/api/ai" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
